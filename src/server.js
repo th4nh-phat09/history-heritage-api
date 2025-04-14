@@ -9,11 +9,9 @@ const START_SERVER = () => {
   const app = express()
   
   app.use(express.json())
-
+  app.use(express.urlencoded({ extended: true }))
   app.use('/v1', APIs_V1)
-
   app.use(errorHandlingMiddleware)
-
   app.listen(env.LOCAL_APP_PORT, env.LOCAL_APP_HOST, () => {
     console.log(`Hello World, I am running at ${env.LOCAL_APP_PORT}:${env.LOCAL_APP_HOST}/`)
   })
