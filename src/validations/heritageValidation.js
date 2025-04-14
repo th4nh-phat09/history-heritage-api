@@ -76,39 +76,153 @@ const createHeritage = async (req, res, next) => {
             'string.empty': 'Mô tả di tích không được để trống',
             'string.min': 'Mô tả di tích phải có ít nhất 10 ký tự'
         }),
-        images: Joi.array().items(Joi.string().uri()).default([]),
+        images: Joi.array().items(Joi.string().uri().messages({
+            'string.uri': 'URL hình ảnh không hợp lệ'
+        })).default([]),
         location: Joi.string().required().trim().messages({
             'any.required': 'Vị trí di tích là bắt buộc',
             'string.empty': 'Vị trí di tích không được để trống'
         }),
         coordinates: Joi.object({
-            latitude: Joi.number().required(),
-            longitude: Joi.number().required()
-        }).required(),
-        status: Joi.string().valid('ACTIVE', 'INACTIVE').default('ACTIVE'),
-        popularTags: Joi.array().items(Joi.string().trim()).default([]),
+            latitude: Joi.string().trim().required().messages({
+                'any.required': 'Vĩ độ là bắt buộc',
+                'string.empty': 'Vị trí di tích không được để trống'
+            }),
+            longitude: Joi.string().trim().required().messages({
+                'any.required': 'Kinh độ là bắt buộc',
+                'string.empty': 'Vị trí di tích không được để trống'
+            })
+        }).required().messages({
+            'any.required': 'Tọa độ là bắt buộc',
+            'object.base': 'Tọa độ phải là một object'
+        }),
+        status: Joi.string().valid('ACTIVE', 'INACTIVE').default('ACTIVE').messages({
+            'any.only': 'Trạng thái phải là ACTIVE hoặc INACTIVE'
+        }),
+        popularTags: Joi.array().items(Joi.string().trim().messages({
+            'string.empty': 'Tag không được để trống'
+        })).default([]),
         additionalInfo: Joi.object({
-            architectural: Joi.string().allow(null),
-            culturalFestival: Joi.string().allow(null),
+            architectural: Joi.string().allow(null).messages({
+                'string.empty': 'Thông tin kiến trúc không được để trống'
+            }),
+            culturalFestival: Joi.string().allow(null).messages({
+                'string.empty': 'Thông tin lễ hội không được để trống'
+            }),
             historicalEvents: Joi.array().items(
                 Joi.object({
-                    title: Joi.string().required(),
-                    description: Joi.string().required()
+                    title: Joi.string().required().messages({
+                        'any.required': 'Tiêu đề sự kiện là bắt buộc',
+                        'string.empty': 'Tiêu đề sự kiện không được để trống'
+                    }),
+                    description: Joi.string().required().messages({
+                        'any.required': 'Mô tả sự kiện là bắt buộc',
+                        'string.empty': 'Mô tả sự kiện không được để trống'
+                    })
                 })
             ).default([])
         }).default({})
     })
 
     try {
-        await correctCondition.validateAsync(req.body, { abortEarly: false })
+        await correctCondition.validateAsync(req.body, { abortEarly: false, allowUnknown: true })
         next()
     } catch (error) {
-        next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message))
+        next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
+    }
+}
+
+const updateHeritage = async (req, res, next) => {
+    const idCondition = Joi.object({
+        id: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+    })
+
+    const bodyCondition = Joi.object({
+        name: Joi.string().required().min(3).max(100).trim().strict().messages({
+            'any.required': 'Tên di tích là bắt buộc',
+            'string.empty': 'Tên di tích không được để trống',
+            'string.min': 'Tên di tích phải có ít nhất 3 ký tự',
+            'string.max': 'Tên di tích không được vượt quá 100 ký tự'
+        }),
+        description: Joi.string().required().min(10).trim().messages({
+            'any.required': 'Mô tả di tích là bắt buộc',
+            'string.empty': 'Mô tả di tích không được để trống',
+            'string.min': 'Mô tả di tích phải có ít nhất 10 ký tự'
+        }),
+        images: Joi.array().items(Joi.string().uri().messages({
+            'string.uri': 'URL hình ảnh không hợp lệ'
+        })).default([]),
+        location: Joi.string().required().trim().messages({
+            'any.required': 'Vị trí di tích là bắt buộc',
+            'string.empty': 'Vị trí di tích không được để trống'
+        }),
+        coordinates: Joi.object({
+            latitude: Joi.string().trim().required().messages({
+                'any.required': 'Vĩ độ là bắt buộc',
+                'string.empty': 'Vị trí di tích không được để trống'
+            }),
+            longitude: Joi.string().trim().required().messages({
+                'any.required': 'Kinh độ là bắt buộc',
+                'string.empty': 'Vị trí di tích không được để trống'
+            })
+        }).required().messages({
+            'any.required': 'Tọa độ là bắt buộc',
+            'object.base': 'Tọa độ phải là một object'
+        }),
+        status: Joi.string().valid('ACTIVE', 'INACTIVE').default('ACTIVE').messages({
+            'any.only': 'Trạng thái phải là ACTIVE hoặc INACTIVE'
+        }),
+        popularTags: Joi.array().items(Joi.string().trim().messages({
+            'string.empty': 'Tag không được để trống'
+        })).default([]),
+        additionalInfo: Joi.object({
+            architectural: Joi.string().allow(null).messages({
+                'string.empty': 'Thông tin kiến trúc không được để trống'
+            }),
+            culturalFestival: Joi.string().allow(null).messages({
+                'string.empty': 'Thông tin lễ hội không được để trống'
+            }),
+            historicalEvents: Joi.array().items(
+                Joi.object({
+                    title: Joi.string().required().messages({
+                        'any.required': 'Tiêu đề sự kiện là bắt buộc',
+                        'string.empty': 'Tiêu đề sự kiện không được để trống'
+                    }),
+                    description: Joi.string().required().messages({
+                        'any.required': 'Mô tả sự kiện là bắt buộc',
+                        'string.empty': 'Mô tả sự kiện không được để trống'
+                    })
+                })
+            ).default([])
+        }).default({})
+    })
+
+    try {
+        await idCondition.validateAsync(req.params, { abortEarly: false })
+        await bodyCondition.validateAsync(req.body, { abortEarly: false, allowUnknown: true })
+        next()
+    } catch (error) {
+        next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
+    }
+}
+
+const deleteHeritage = async (req, res, next) => {
+    const idCondition = Joi.object({
+        id: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+    })
+
+    try {
+        await idCondition.validateAsync(req.params, { abortEarly: false })
+        next()
+    } catch (error) {
+        next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
     }
 }
 
 export const heritageValidation = {
     getHeritages,
     getHeritageById,
-    createHeritage
+    createHeritage,
+    updateHeritage,
+    deleteHeritage
 } 

@@ -3,10 +3,8 @@ import { ObjectId } from 'mongodb'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 import { GET_DB } from '~/config/mongodb'
 
-// Định nghĩa tên Collection
 const HERITAGE_COLLECTION_NAME = 'HistoryHeritage'
-
-// Định nghĩa Schema của Collection (Sử dụng Joi để nhất quán và validate nếu cần)
+const INVALID_UPDATE_FIELDS = ['_id', 'createdAt']
 const HERITAGE_COLLECTION_SCHEMA = Joi.object({
     name: Joi.string().required().min(3).max(100).trim(),
     nameSlug: Joi.string().trim(),
@@ -16,30 +14,30 @@ const HERITAGE_COLLECTION_SCHEMA = Joi.object({
     locationSlug: Joi.string().trim(),
     locationNormalized: Joi.string().trim(),
     coordinates: Joi.object({
-        latitude: Joi.number().required(),
-        longitude: Joi.number().required()
+        latitude: Joi.string().trim().required(),
+        longitude: Joi.string().trim().required()
     }).required(),
     stats: Joi.object({
-        averageRating: Joi.number().default(0),
-        totalReviews: Joi.number().default(0),
-        totalVisits: Joi.number().default(0),
-        totalFavorites: Joi.number().default(0)
-    }).default({ averageRating: 0, totalReviews: 0, totalVisits: 0, totalFavorites: 0 }),
+        averageRating: Joi.string().trim().default('0'),
+        totalReviews: Joi.string().trim().default('0'),
+        totalVisits: Joi.string().trim().default('0'),
+        totalFavorites: Joi.string().trim().default('0')
+    }).default({ averageRating: '0', totalReviews: '0', totalVisits: '0', totalFavorites: '0' }),
     knowledgeTestId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).allow(null).default(null),
     leaderboardId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).allow(null).default(null),
     leaderboardSummary: Joi.object({
-        topScore: Joi.number().default(0),
+        topScore: Joi.string().trim().default('0'),
         topUser: Joi.object({
             userId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).allow(null).default(null),
             userName: Joi.string().allow('').default('')
         }).default({ userId: null, userName: '' }),
-        totalParticipants: Joi.number().default(0)
-    }).default({ topScore: 0, topUser: { userId: null, userName: '' }, totalParticipants: 0 }),
+        totalParticipants: Joi.string().trim().default('0')
+    }).default({ topScore: '0', topUser: { userId: null, userName: '' }, totalParticipants: '0' }),
     knowledgeTestSummary: Joi.object({
         title: Joi.string().allow('').default(''),
-        questionCount: Joi.number().default(0),
+        questionCount: Joi.string().trim().default('0'),
         difficulty: Joi.string().valid('Easy', 'Medium', 'Hard').default('Medium')
-    }).default({ title: '', questionCount: 0, difficulty: 'Medium' }),
+    }).default({ title: '', questionCount: '0', difficulty: 'Medium' }),
     rolePlayIds: Joi.array().items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)).default([]),
     additionalInfo: Joi.object({
         architectural: Joi.string().allow(null).default(null),
@@ -55,8 +53,7 @@ const HERITAGE_COLLECTION_SCHEMA = Joi.object({
     popularTags: Joi.array().items(Joi.string().trim()).default([]),
     tagsSlug: Joi.array().items(Joi.string().trim()).default([]),
     createdAt: Joi.date().timestamp('javascript').default(Date.now),
-    updatedAt: Joi.date().timestamp('javascript').default(null),
-    _destroy: Joi.boolean().default(false) // Ví dụ nếu muốn soft delete
+    updatedAt: Joi.date().timestamp('javascript').default(null)
 })
 
 // Hàm lấy collection object để thao tác với DB
@@ -69,11 +66,10 @@ const getCollection = () => {
 // Tạo mới một di tích
 const createNew = async (data) => {
     try {
-        // Validate dữ liệu trước khi insert (không bắt buộc nếu đã validate ở tầng trên)
-        // const validatedData = await HERITAGE_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
-        const result = await getCollection().insertOne(data) // Dùng data đã được service chuẩn bị
-        // Trả về document vừa tạo bằng cách tìm lại qua ID
-        return findOneById(result.insertedId)
+        // Validate dữ liệu trước khi insert 
+        const validatedData = await HERITAGE_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
+        const result = await getCollection().insertOne(validatedData) // Dùng validatedData đã được validate và áp dụng default
+        return result
     } catch (error) { throw new Error(error) }
 }
 
@@ -101,9 +97,40 @@ const findListHeritages = async ({ filter, sort, skip, limit }) => {
     } catch (error) { throw new Error(error) }
 }
 
-// --- Các hàm khác (Ví dụ) ---
-// const updateOneById = async (id, updateData) => { ... }
-// const deleteOneById = async (id) => { ... } // Có thể là soft delete bằng cách cập nhật _destroy: true
+// Cập nhật một di tích
+const updateOneById = async (id, dataUpdate) => {
+    try {
+        Object.keys(dataUpdate).forEach(fieldname => {
+            if (INVALID_UPDATE_FIELDS.includes(fieldname))
+                delete dataUpdate[fieldname]
+        })
+        const result = await getCollection().findOneAndUpdate(
+            { _id: new ObjectId(id) },
+            { $set: dataUpdate },
+            { returnDocument: 'after' }
+        )
+        return result
+    } catch (error) { throw new Error(error) }
+}
+
+// Xóa một di tích
+const deleteOneById = async (id) => {
+    try {
+        const result = await getCollection().deleteOne({ _id: new ObjectId(id) })
+        return result
+    } catch (error) { throw new Error(error) }
+}
+
+// Lấy chi tiết một di tích
+const getDetailById = async (id) => {
+    try {
+        const result = await getCollection().findOne({
+            _id: new ObjectId(id),
+            _destroy: { $ne: true }
+        })
+        return result
+    } catch (error) { throw new Error(error) }
+}
 
 // --- Export Model --- 
 export const heritageModel = {
@@ -111,7 +138,8 @@ export const heritageModel = {
     HERITAGE_COLLECTION_SCHEMA,
     createNew,
     findOneById,
-    findListHeritages
-    // updateOneById,
-    // deleteOneById
+    findListHeritages,
+    updateOneById,
+    deleteOneById,
+    getDetailById
 } 

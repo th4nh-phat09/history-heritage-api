@@ -9,7 +9,7 @@ Router.get('/status', (req, res) => {
 })
 
 // historyHeritageRoute APIs
-Router.use('/heritageRoutes', historyHeritageRoute)
+Router.use('/heritages', historyHeritageRoute)
 
 
 export const APIs_V1 = Router
