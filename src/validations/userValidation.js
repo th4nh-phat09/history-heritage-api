@@ -2,12 +2,25 @@
 import { StatusCodes } from 'http-status-codes'
 import Joi from 'joi'
 import ApiError from '~/utils/ApiError'
-import { EMAIL_RULE, EMAIL_RULE_MESSAGE, PASSWORD_RULE, PASSWORD_RULE_MESSAGE } from '~/utils/validators'
+import { EMAIL_RULE, EMAIL_RULE_MESSAGE, OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE, PASSWORD_RULE, PASSWORD_RULE_MESSAGE, PHONE_RULE, PHONE_RULE_MESSAGE } from '~/utils/validators'
 
 const createNew = async (req, res, next) => {
   const correctCondition = Joi.object({
     email: Joi.string().required().pattern(EMAIL_RULE).message(EMAIL_RULE_MESSAGE),
     password: Joi.string().required().pattern(PASSWORD_RULE).message(PASSWORD_RULE_MESSAGE)
+  })
+  try {
+    await correctCondition.validateAsync(req.body, { abortEarly: false,
+      allowUnknown: true })
+    next()
+  } catch (error) {
+    next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message ))
+  }
+}
+
+const getUserById = async (req, res, next) => {
+  const correctCondition = Joi.object({
+    userId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
   })
   try {
     await correctCondition.validateAsync(req.body, { abortEarly: false })
@@ -17,6 +30,76 @@ const createNew = async (req, res, next) => {
   }
 }
 
+const GENDER_OPTION = {
+  MEN: 'men',
+  WOMAN: 'woman',
+  OTHER: 'other'
+}
+
+const updateUser = async (req, res, next) => {
+  const updateSchema = Joi.object({
+    displayname: Joi.string().required().trim().strict(),
+    phone: Joi.string().pattern(PHONE_RULE).message(PHONE_RULE_MESSAGE),
+    gender: Joi.string().valid(GENDER_OPTION.MEN, GENDER_OPTION.WOMAN, GENDER_OPTION.OTHER),
+    dateOfBirth: Joi.date(),
+    avatar: Joi.string(),
+
+    heritageIds: Joi.array().items(
+      Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+    ),
+
+    notifications: Joi.object({
+      unreadCount: Joi.number(),
+      recentNotifications: Joi.array().items(
+        Joi.object({
+          id: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
+          message: Joi.string(),
+          date: Joi.date(),
+          isRead: Joi.boolean()
+        })
+      )
+    }),
+
+    leaderboardStats: Joi.object({
+      bestRank: Joi.number(),
+      bestScore: Joi.number(),
+      totalParticipations: Joi.number()
+    }),
+
+    stats: Joi.object({
+      totalVisitedHeritages: Joi.number(),
+      totalCompletedTests: Joi.number(),
+      averageScore: Joi.number(),
+      totalReviews: Joi.number()
+    })
+  })
+
+  try {
+    await updateSchema.validateAsync(req.body, {
+      abortEarly: false,
+      allowUnknown: true
+    })
+    next()
+  } catch (error) {
+    next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, error.message))
+  }
+}
+
+const deleteAccount = async (req, res, next) => {
+  const correctCondition = Joi.object({
+    userId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+  })
+  try {
+    await correctCondition.validateAsync(req.body, { abortEarly: false,
+      allowUnknown: true })
+    next()
+  } catch (error) {
+    next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message ))
+  }
+}
 export const userValidation = {
-  createNew
+  createNew,
+  getUserById,
+  updateUser,
+  deleteAccount
 }

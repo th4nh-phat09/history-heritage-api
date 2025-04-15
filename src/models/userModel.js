@@ -19,7 +19,7 @@ const GENDER_OPTION = {
 // Define Collection (name & schema)
 const USER_COLLECTION_NAME = 'User'
 const USER_COLLECTION_SCHEMA = Joi.object({
-  role: Joi.string().valid(USER_ROLE.CLIENT, USER_ROLE.ADMIN).default(USER_ROLE.CLIENT),
+  role: Joi.string().valid(USER_ROLE.STAFF, USER_ROLE.ADMIN, USER_ROLE.MEMBER).default(USER_ROLE.MEMBER),
   displayname: Joi.string().required().trim().strict(),
   phone: Joi.string().required().pattern(PHONE_RULE).message(PHONE_RULE_MESSAGE),
   gender: Joi.string().valid(GENDER_OPTION.MEN, GENDER_OPTION.WOMAN, GENDER_OPTION.OTHER).default(GENDER_OPTION.OTHER),
@@ -62,7 +62,7 @@ const USER_COLLECTION_SCHEMA = Joi.object({
     totalReviews: Joi.number().default(0)
   }).default({}),
 
-  status: Joi.string().default('active'),
+
   createAt: Joi.date().timestamp('javascript').default(Date.now),
   updatedAt: Joi.date().timestamp('javascript').default(null)
 })
@@ -83,6 +83,14 @@ const createNew = async (data) => {
   }
 }
 
+const getAll = async () => {
+  try {
+    return await GET_DB().collection(USER_COLLECTION_NAME).find().toArray()
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 const findOneById = async(id) => {
   try {
     return await GET_DB().collection(USER_COLLECTION_NAME).findOne({
@@ -96,7 +104,7 @@ const findOneById = async(id) => {
 const findOneByEmail = async(emailValue) => {
   try {
     return await GET_DB().collection(USER_COLLECTION_NAME).findOne({
-      email: emailValue
+      'account.email': emailValue
     })
   } catch (error) {
     throw new Error(error)
@@ -140,6 +148,7 @@ export const userModel = {
   USER_COLLECTION_NAME,
   USER_COLLECTION_SCHEMA,
   createNew,
+  getAll,
   findOneById,
   findOneByEmail,
   update,
