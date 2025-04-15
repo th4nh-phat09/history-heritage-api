@@ -19,6 +19,15 @@ const createNew = async (req, res, next) => {
   }
 }
 
+const signIn = async (req, res, next) => {
+  try {
+    const newUser = await userService.signIn(req.body)
+    res.status(StatusCodes.CREATED).json(newUser)
+  } catch (error) {
+    next(error)
+  }
+}
+
 const getUserById = async (req, res, next) => {
   try {
     const result = await userService.getUserById(req.params.id)
@@ -51,5 +60,6 @@ export const userController = {
   createNew,
   getUserById,
   updateUser,
-  deleteAccount
+  deleteAccount,
+  signIn
 }
