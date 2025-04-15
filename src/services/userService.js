@@ -6,16 +6,16 @@ import { v4 as uuidv4 } from "uuid";
 import { mailService } from "./mailService";
 
 const getAll = async () => {
-  // try {
-  //   const result = await userModel.getAll()
-  //   if (!result) {
-  //     throw new ApiError(StatusCodes.NOT_FOUND, 'board not found!')
-  //   }
-  // } catch (error) {
-  //   throw error
-  // }
-};
-
+  try {
+    const result = await userModel.getAll()
+    if (!result) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'List user is empty')
+    }
+    return result
+  } catch (error) {
+    throw error
+  }
+}
 const createNew = async (reqBody) => {
   try {
     // check email có tồn tại hay không
@@ -26,12 +26,14 @@ const createNew = async (reqBody) => {
     // khởi tạo data
     const nameFromEmail = reqBody.email.split("@")[0];
     const newUser = {
-      email: reqBody.email,
-      password: bcryptjs.hashSync(reqBody.password, 8),
-      username: nameFromEmail,
       displayname: nameFromEmail,
-      verifyToken: uuidv4(),
-    };
+      phone: reqBody.phone,
+      account: {
+        email: reqBody.email,
+        password: bcryptjs.hashSync(reqBody.password, 8),
+        verifyToken: uuidv4()
+      }
+    }    
     // lưu data
     const result = await userModel.createNew(newUser);
 
@@ -45,7 +47,47 @@ const createNew = async (reqBody) => {
   }
 };
 
+const getUserById = async (id) => {
+  try {
+    const result = await userModel.findOneById(id)
+    if (!result)
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found!.')
+    return result
+  } catch (error) {
+    throw error
+  }
+}
+
+const updateUser = async (id, data) => {
+  try {
+    const checkExistUser = await userModel.findOneById(id)
+    if (!checkExistUser)
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found!')
+    const newUser = {
+      ...data,
+      updatedAt: Date.now()
+    }
+    const updatedHeritage = await userModel.updateUser(id, newUser)
+    return updatedHeritage
+  } catch (error) {
+    throw error
+  }
+}
+
+const deleteAccount = async (id) => {
+  try {
+    await userModel.deleteOneById(id)
+    return { deletedResult: 'User was deleted' }
+  } catch (error) {
+    throw error
+  }
+}
+
 export const userService = {
   getAll,
   createNew,
-};
+  getUserById,
+  updateUser,
+  deleteAccount
+}
+

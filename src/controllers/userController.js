@@ -19,7 +19,37 @@ const createNew = async (req, res, next) => {
   }
 }
 
+const getUserById = async (req, res, next) => {
+  try {
+    const result = await userService.getUserById(req.params.id)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const updateUser = async (req, res, next) => {
+  try {
+    const result = await userService.updateUser(req.params.id, req.body)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const deleteAccount = async (req, res, next) => {
+  try {
+    const result = await userService.deleteAccount(req.body)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const userController = {
   getAll,
-  createNew
+  createNew,
+  getUserById,
+  updateUser,
+  deleteAccount
 }
