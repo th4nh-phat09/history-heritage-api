@@ -13,7 +13,7 @@ Router.get('/status', (req, res) => {
 Router.use('/heritages', historyHeritageRoute)
 
 // user APIs
-Router.use('/users', userRoute)
+//Router.use('/users', userRoute)
 
 export const APIs_V1 = Router
 

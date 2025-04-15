@@ -4,10 +4,13 @@ import exitHook from 'async-exit-hook'
 import { APIs_V1 } from './routes/v1'
 import { env } from '~/config/environment'
 import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
+import { corsOptions } from '~/config/cors'
+import cors from 'cors'
+
 
 const START_SERVER = () => {
   const app = express()
-  
+  app.use(cors(corsOptions))
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
   app.use('/v1', APIs_V1)
@@ -15,7 +18,8 @@ const START_SERVER = () => {
   app.listen(env.LOCAL_APP_PORT, env.LOCAL_APP_HOST, () => {
     console.log(`Hello World, I am running at ${env.LOCAL_APP_PORT}:${env.LOCAL_APP_HOST}/`)
   })
-
+  console.log(env.BUILD_MODE)
+  console.log(env.LOCAL_APP_PORT)
   exitHook(() => {
     console.log('Disconnecting database connection')
     CLOSE_DB()
