@@ -20,13 +20,14 @@ const createNew = async (req, res, next) => {
 
 const getUserById = async (req, res, next) => {
   const correctCondition = Joi.object({
-    userId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+    id: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
   })
+
   try {
-    await correctCondition.validateAsync(req.body, { abortEarly: false })
+    await correctCondition.validateAsync(req.params, { abortEarly: false })
     next()
   } catch (error) {
-    next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message ))
+    next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
   }
 }
 
@@ -38,7 +39,7 @@ const GENDER_OPTION = {
 
 const updateUser = async (req, res, next) => {
   const updateSchema = Joi.object({
-    displayname: Joi.string().required().trim().strict(),
+    displayname: Joi.string().trim().strict(),
     phone: Joi.string().pattern(PHONE_RULE).message(PHONE_RULE_MESSAGE),
     gender: Joi.string().valid(GENDER_OPTION.MEN, GENDER_OPTION.WOMAN, GENDER_OPTION.OTHER),
     dateOfBirth: Joi.date(),

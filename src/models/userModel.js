@@ -68,12 +68,14 @@ const USER_COLLECTION_SCHEMA = Joi.object({
 })
 
 // chỉ định những trường ko nên update
-const INVALID_DATA_UPDATE = ['_id', 'email', 'username', 'createAt']
+const INVALID_DATA_UPDATE = ['_id', 'createAt']
 
+// hàm validate của Joi
 const validationBeforeCreate = async (data) => {
   return await USER_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
 }
 
+// tạo user
 const createNew = async (data) => {
   try {
     const validation = await validationBeforeCreate(data)
@@ -83,6 +85,7 @@ const createNew = async (data) => {
   }
 }
 
+// Lấy danh sách tất cả user
 const getAll = async () => {
   try {
     return await GET_DB().collection(USER_COLLECTION_NAME).find().toArray()
@@ -91,6 +94,7 @@ const getAll = async () => {
   }
 }
 
+// Tìm user bằng userId
 const findOneById = async(id) => {
   try {
     return await GET_DB().collection(USER_COLLECTION_NAME).findOne({
@@ -101,6 +105,7 @@ const findOneById = async(id) => {
   }
 }
 
+// Tìm user bằng email
 const findOneByEmail = async(emailValue) => {
   try {
     return await GET_DB().collection(USER_COLLECTION_NAME).findOne({
@@ -111,8 +116,8 @@ const findOneByEmail = async(emailValue) => {
   }
 }
 
-
-const update = async (id, data) => {
+// update thông tin user
+const updateUser = async (id, data) => {
   try {
     // lọc những field ko cho phép update
     Object.keys(data).forEach(key => {
@@ -133,11 +138,10 @@ const update = async (id, data) => {
   }
 }
 
+// xóa user
 const deleteOneById = async ( id ) => {
   try {
-
     const result = await GET_DB().collection(USER_COLLECTION_NAME).deleteOne({ _id: new ObjectId(id) })
-
     return result
   } catch (error) {
     throw new Error(error)
@@ -151,6 +155,6 @@ export const userModel = {
   getAll,
   findOneById,
   findOneByEmail,
-  update,
+  updateUser,
   deleteOneById
 }

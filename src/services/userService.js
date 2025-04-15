@@ -46,7 +46,46 @@ const createNew = async ( reqBody ) => {
   }
 }
 
+const getUserById = async (id) => {
+  try {
+    const result = await userModel.findOneById(id)
+    if (!result)
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found!.')
+    return result
+  } catch (error) {
+    throw error
+  }
+}
+
+const updateUser = async (id, data) => {
+  try {
+    const checkExistUser = await userModel.findOneById(id)
+    if (!checkExistUser)
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found!')
+    const newUser = {
+      ...data,
+      updatedAt: Date.now()
+    }
+    const updatedHeritage = await userModel.updateUser(id, newUser)
+    return updatedHeritage
+  } catch (error) {
+    throw error
+  }
+}
+
+const deleteAccount = async (id) => {
+  try {
+    await userModel.deleteOneById(id)
+    return { deletedResult: 'User was deleted' }
+  } catch (error) {
+    throw error
+  }
+}
+
 export const userService = {
   getAll,
-  createNew
+  createNew,
+  getUserById,
+  updateUser,
+  deleteAccount
 }
