@@ -47,6 +47,30 @@ const createNew = async (reqBody) => {
   }
 }
 
+const signIn = async (reqBody) => {
+  try {
+    // check email có tồn tại hay không
+    const user = await userModel.findOneByEmail(reqBody.email)
+    if (!user) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Email not found!')
+    }
+
+    const isValidPassword = await bcryptjs.compare(reqBody.password, user.password)
+    if (!isValidPassword) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid email or password')
+    }
+
+    if (user?.isVerified === false) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Email not verified')
+    }
+
+    const { password: _, ...userWithoutPassword } = user
+    return userWithoutPassword
+  } catch (error) {
+    throw error
+  }
+}
+
 const getUserById = async (id) => {
   try {
     const result = await userModel.findOneById(id)
@@ -87,5 +111,6 @@ export const userService = {
   createNew,
   getUserById,
   updateUser,
-  deleteAccount
+  deleteAccount,
+  signIn
 }

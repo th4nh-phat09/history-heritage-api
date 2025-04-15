@@ -48,10 +48,12 @@ const verify_email = async (email, code) => {
     if (isCodeExpired) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Code has expired')
     }
-    user.isVerified = true
-    user.code = null
-    user.codeExpiry = null
-    await user.save()
+
+    await userModel.updateUser(user._id, {
+      'account.code': null,
+      'account.codeExpiry': null,
+      'account.isVerified': true
+    })
     return { success: true, message: 'Verified successfully' }
   } catch (error) {
     throw error
