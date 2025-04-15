@@ -29,9 +29,8 @@ const USER_COLLECTION_SCHEMA = Joi.object({
     .default(USER_ROLE.MEMBER),
   displayname: Joi.string().required().trim().strict(),
   phone: Joi.string().pattern(PHONE_RULE).message(PHONE_RULE_MESSAGE),
-  gender: Joi.string()
-    .valid(GENDER_OPTION.MEN, GENDER_OPTION.WOMAN, GENDER_OPTION.OTHER)
-    .default(GENDER_OPTION.OTHER),
+  gender: Joi.string().valid(GENDER_OPTION.MEN, GENDER_OPTION.WOMAN, GENDER_OPTION.OTHER).default(GENDER_OPTION.OTHER),
+
   dateOfBirth: Joi.date().default(null),
   avatar: Joi.string().default(null),
 

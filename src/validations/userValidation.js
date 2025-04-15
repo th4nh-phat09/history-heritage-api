@@ -115,21 +115,14 @@ const updateUser = async (req, res, next) => {
 
 const deleteAccount = async (req, res, next) => {
   const correctCondition = Joi.object({
-    userId: Joi.string()
-      .required()
-      .pattern(OBJECT_ID_RULE)
-      .message(OBJECT_ID_RULE_MESSAGE)
+    id: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
   })
+
   try {
-    await correctCondition.validateAsync(req.body, {
-      abortEarly: false,
-      allowUnknown: true
-    })
+    await correctCondition.validateAsync(req.params, { abortEarly: false })
     next()
   } catch (error) {
-    next(
-      new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message)
-    )
+    next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))    
   }
 }
 export const userValidation = {
