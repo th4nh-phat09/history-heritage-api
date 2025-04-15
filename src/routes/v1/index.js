@@ -6,7 +6,7 @@ const Router = express.Router()
 
 // check status v1
 Router.get('/status', (req, res) => {
-    res.status(StatusCodes.OK).json({ message: 'API v1 is working' })
+  res.status(StatusCodes.OK).json({ message: 'API v1 is working' })
 })
 
 // historyHeritageRoute APIs
@@ -16,4 +16,3 @@ Router.use('/heritages', historyHeritageRoute)
 Router.use('/users', userRoute)
 
 export const APIs_V1 = Router
-
