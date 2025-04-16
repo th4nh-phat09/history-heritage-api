@@ -99,6 +99,10 @@ const updateUser = async (id, data) => {
 
 const deleteAccount = async (id) => {
   try {
+    const checkId = await userModel.findOneById(id)
+    if (!checkId) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found')
+    }
     await userModel.deleteOneById(id)
     return { deletedResult: 'User was deleted' }
   } catch (error) {
