@@ -5,17 +5,46 @@ import bcryptjs from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
 import { mailService } from './mailService'
 
-const getAll = async () => {
+const getAll = async (queryParams) => {
   try {
-    const result = await userModel.getAll()
-    if (!result) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'List user is empty')
+    const { page, limit, search, sort, order } = queryParams
+
+    // Tính toán skip
+    const skip = (page - 1) * limit
+
+    // Xây dựng bộ lọc
+    const filter = {}
+    if (search) {
+      filter.displayname = { $regex: search, $options: 'i' } // Tìm kiếm theo displayname (không phân biệt hoa thường)
     }
-    return result
+
+    // Xây dựng điều kiện sắp xếp
+    const sortOptions = {}
+    sortOptions[sort] = order === 'asc' ? 1 : -1
+
+    // Gọi model để lấy dữ liệu
+    const users = await userModel.getAllWithPagination({ filter, sort: sortOptions, skip, limit })
+
+    // Tính tổng số bản ghi
+    const totalCount = await userModel.countDocuments(filter)
+
+    // Tính tổng số trang
+    const totalPages = Math.ceil(totalCount / limit)
+
+    return {
+      users,
+      pagination: {
+        totalItems: totalCount,
+        currentPage: parseInt(page, 10),
+        totalPages,
+        itemsPerPage: parseInt(limit, 10)
+      }
+    }
   } catch (error) {
     throw error
   }
 }
+
 const createNew = async (reqBody) => {
   try {
     // check email có tồn tại hay không

@@ -11,7 +11,8 @@ Router.route('/register')
 
 // get all user
 Router.route('/')
-  .get(userController.getAll).post(userController.signIn)
+  .get(userValidation.getAll, userController.getAll)
+  .post(userController.signIn)
 
 // get detail, update, and delete user
 Router.route('/:id')

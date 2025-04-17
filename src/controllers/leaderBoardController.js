@@ -3,7 +3,7 @@ import { leaderBoardService } from '~/services/leaderBoardService'
 
 const getAll = async (req, res, next) => {
   try {
-    const result = await leaderBoardService.getAll()
+    const result = await leaderBoardService.getAll(req.query)
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
     next(error)
