@@ -125,9 +125,29 @@ const deleteAccount = async (req, res, next) => {
     next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))    
   }
 }
+
+const getAll = async (req, res, next) => {
+  const correctCondition = Joi.object({
+    page: Joi.number().integer().min(1).default(1),
+    limit: Joi.number().integer().min(5).max(50).default(10),
+    search: Joi.string().trim().allow(''),
+    sort: Joi.string().valid('displayname', 'createAt', 'updatedAt').default('createAt'),
+    order: Joi.string().valid('asc', 'desc').default('desc')
+  })
+
+  try {
+    const validatedValue = await correctCondition.validateAsync(req.query, { abortEarly: false })
+    req.query = validatedValue // Chuẩn hóa dữ liệu
+    next()
+  } catch (error) {
+    next(new ApiError(StatusCodes.BAD_REQUEST, error.message))
+  }
+}
+
 export const userValidation = {
   createNew,
   getUserById,
   updateUser,
-  deleteAccount
+  deleteAccount,
+  getAll
 }

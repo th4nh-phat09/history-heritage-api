@@ -2,17 +2,46 @@ import { StatusCodes } from 'http-status-codes'
 import { leaderBoardModel } from '~/models/leaderBoardModel'
 import ApiError from '~/utils/ApiError'
 
-const getAll = async () => {
+const getAll = async (queryParams) => {
   try {
-    const result = await leaderBoardModel.getAll()
-    if (!result) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'List leaderBoard is empty')
+    const { page, limit, search, sort, order } = queryParams
+
+    // Tính toán skip
+    const skip = (page - 1) * limit
+
+    // Xây dựng bộ lọc
+    const filter = {}
+    if (search) {
+      filter['rankings.displayName'] = { $regex: search, $options: 'i' } // Tìm kiếm theo displayName (không phân biệt hoa thường)
     }
-    return result
+
+    // Xây dựng điều kiện sắp xếp
+    const sortOptions = {}
+    sortOptions[sort] = order === 'asc' ? 1 : -1
+
+    // Gọi model để lấy dữ liệu
+    const leaderBoards = await leaderBoardModel.getAllWithPagination({ filter, sort: sortOptions, skip, limit })
+
+    // Tính tổng số bản ghi
+    const totalCount = await leaderBoardModel.countDocuments(filter)
+
+    // Tính tổng số trang
+    const totalPages = Math.ceil(totalCount / limit)
+
+    return {
+      leaderBoards,
+      pagination: {
+        totalItems: totalCount,
+        currentPage: parseInt(page, 10),
+        totalPages,
+        itemsPerPage: parseInt(limit, 10)
+      }
+    }
   } catch (error) {
     throw error
   }
 }
+
 const createNew = async (reqBody) => {
   try {
     // khởi tạo data

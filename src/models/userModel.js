@@ -106,10 +106,29 @@ const createNew = async (data) => {
   }
 }
 
-// Lấy danh sách tất cả user
-const getAll = async () => {
+
+
+// Lấy danh sách user với phân trang
+const getAllWithPagination = async ({ filter, sort, skip, limit }) => {
   try {
-    return await GET_DB().collection(USER_COLLECTION_NAME).find().toArray()
+    return await GET_DB()
+      .collection(USER_COLLECTION_NAME)
+      .find(filter) // Áp dụng bộ lọc
+      .sort(sort) // Sắp xếp
+      .skip(skip) // Bỏ qua số bản ghi
+      .limit(limit) // Giới hạn số bản ghi
+      .toArray()
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Đếm tổng số bản ghi phù hợp với bộ lọc
+const countDocuments = async (filter) => {
+  try {
+    return await GET_DB()
+      .collection(USER_COLLECTION_NAME)
+      .countDocuments(filter)
   } catch (error) {
     throw new Error(error)
   }
@@ -179,7 +198,8 @@ export const userModel = {
   USER_COLLECTION_NAME,
   USER_COLLECTION_SCHEMA,
   createNew,
-  getAll,
+  getAllWithPagination,
+  countDocuments,
   findOneById,
   findOneByEmail,
   updateUser,

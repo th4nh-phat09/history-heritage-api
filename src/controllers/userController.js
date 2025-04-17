@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes'
 
 const getAll = async (req, res, next) => {
   try {
-    const result = await userService.getAll()
+    const result = await userService.getAll(req.query)
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
     next(error)

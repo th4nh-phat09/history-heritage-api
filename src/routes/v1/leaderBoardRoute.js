@@ -7,7 +7,7 @@ const Router = express.Router()
 
 // get all, create
 Router.route('/')
-  .get(leaderBoardController.getAll)
+  .get(leaderBoardValidation.getAll, leaderBoardController.getAll)
   .post(leaderBoardValidation.createNew, leaderBoardController.createNew)
 
 // get detail, update, and delete LeaderBoard
