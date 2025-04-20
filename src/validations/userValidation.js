@@ -25,14 +25,27 @@ const createNew = async (req, res, next) => {
   })
   try {
     await correctCondition.validateAsync(req.body, {
-      abortEarly: false,
-      allowUnknown: true
+      abortEarly: false
     })
     next()
   } catch (error) {
     next(
       new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message)
     )
+  }
+}
+
+const signIn = async (req, res, next) => {
+  const correctCondition = Joi.object({
+    email: Joi.string().required().pattern(EMAIL_RULE).message(EMAIL_RULE_MESSAGE),
+    password: Joi.string().required().pattern(PASSWORD_RULE).message(PASSWORD_RULE_MESSAGE)
+  })
+
+  try {
+    await correctCondition.validateAsync(req.body, { abortEarly: false })
+    next()
+  } catch (error) {
+    next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
   }
 }
 
@@ -122,7 +135,7 @@ const deleteAccount = async (req, res, next) => {
     await correctCondition.validateAsync(req.params, { abortEarly: false })
     next()
   } catch (error) {
-    next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))    
+    next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
   }
 }
 
@@ -144,10 +157,24 @@ const getAll = async (req, res, next) => {
   }
 }
 
+const refreshToken = async (req, res, next) => {
+  const correctCondition = Joi.object({
+    refreshToken: Joi.string().required().pattern(JWT_TOKEN_RULE).message(JWT_TOKEN_RULE_MESSAGE)
+  })
+  try {
+    await correctCondition.validateAsync(req?.cookies?.refreshToken, { abortEarly: false })
+    next()
+  } catch (error) {
+    next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
+  }
+}
+
 export const userValidation = {
   createNew,
   getUserById,
   updateUser,
   deleteAccount,
-  getAll
+  getAll,
+  signIn,
+  refreshToken
 }

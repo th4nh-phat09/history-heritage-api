@@ -4,6 +4,9 @@ import ApiError from '~/utils/ApiError'
 import bcryptjs from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
 import { mailService } from './mailService'
+import { JwtProvider } from '~/providers/JwtProvider'
+import { env } from '~/config/environment'
+
 
 const getAll = async (queryParams) => {
   try {
@@ -69,6 +72,8 @@ const createNew = async (reqBody) => {
     const getNewUser = await userModel.findOneById(result.insertedId)
     // verify  email
     await mailService.sendVerificationEmail(reqBody.email)
+
+    delete getNewUser.account
     // retrun data
     return getNewUser
   } catch (error) {
@@ -84,17 +89,40 @@ const signIn = async (reqBody) => {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Email not found!')
     }
 
-    const isValidPassword = await bcryptjs.compare(reqBody.password, user.password)
+    const isValidPassword = await bcryptjs.compare(reqBody.password, user.account.password)
     if (!isValidPassword) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid email or password')
     }
 
-    if (user?.isVerified === false) {
+    if (user?.account?.isVerify === false) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Email not verified')
     }
 
     const { password: _, ...userWithoutPassword } = user
-    return userWithoutPassword
+    // tạo token
+
+
+    // Trường hợp nhập đúng thông tin tài khoản, tạo token và trả về cho phía Client
+    //Tạo thông tin cho payload gửi về cho client
+    const userInfo = {
+      id: userWithoutPassword._id,
+      email: userWithoutPassword.account.email,
+      role: userWithoutPassword.role
+    }
+    //tạo access token gửi về cho client
+    const accessToken = await JwtProvider.generateToken(userInfo, env.ACCESS_TOKEN_SECRET_SIGNATURE, '1h')
+    //tạo refresh token gửi về cho client
+    const refreshToken = await JwtProvider.generateToken(userInfo, env.REFRESH_TOKEN_SECRET_SIGNATURE, '14 days')
+
+    delete userWithoutPassword.account
+    delete userWithoutPassword._id
+    //trả về kqua cho client
+    return {
+      ...userWithoutPassword,
+      ...userInfo,
+      accessToken,
+      refreshToken
+    }
   } catch (error) {
     throw error
   }
@@ -139,11 +167,30 @@ const deleteAccount = async (id) => {
   }
 }
 
+const refreshToken = async (refreshToken) => {
+  try {
+    const verifyToken = await JwtProvider.verifyToken(refreshToken, env.REFRESH_TOKEN_SECRET_SIGNATURE)
+    //tạo lại payload để tạo accessToken
+    const userInfo = {
+      id: verifyToken.id,
+      email: verifyToken.email,
+      role: verifyToken.role
+    }
+    //tạo access token gửi về cho client
+    const accessToken = await JwtProvider.generateToken(userInfo, env.ACCESS_TOKEN_SECRET_SIGNATURE, 5)
+    return accessToken
+  } catch (error) {
+    throw error
+  }
+
+}
+
 export const userService = {
   getAll,
   createNew,
   getUserById,
   updateUser,
   deleteAccount,
-  signIn
+  signIn,
+  refreshToken
 }
