@@ -133,6 +133,41 @@ const deleteOneById = async (id) => {
   }
 }
 
+// Thêm method mới
+const getByHeritageId = async ({ heritageId, skip, limit }) => {
+  try {
+    const result = await GET_DB()
+      .collection(LEADER_BOARD_COLLECTION_NAME)
+      .findOne(
+        { heritageId: heritageId },
+        {
+          projection: {
+            rankings: { $slice: [skip, limit] },
+            stats: 1
+          }
+        }
+      )
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Thêm method để đếm số lượng rankings
+const countRankings = async (heritageId) => {
+  try {
+    const result = await GET_DB()
+      .collection(LEADER_BOARD_COLLECTION_NAME)
+      .findOne(
+        { heritageId: heritageId },
+        { projection: { rankingsCount: { $size: '$rankings' } } }
+      )
+    return result?.rankingsCount || 0
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const leaderBoardModel = {
   LEADER_BOARD_COLLECTION_NAME,
   LEADER_BOARD_COLLECTION_SCHEMA,
@@ -141,5 +176,7 @@ export const leaderBoardModel = {
   countDocuments,
   findOneById,
   update,
-  deleteOneById
+  deleteOneById,
+  getByHeritageId,
+  countRankings
 }

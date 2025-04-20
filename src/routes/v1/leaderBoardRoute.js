@@ -10,6 +10,10 @@ Router.route('/')
   .get(leaderBoardValidation.getAll, leaderBoardController.getAll)
   .post(leaderBoardValidation.createNew, leaderBoardController.createNew)
 
+// get by heritageId with pagination
+Router.route('/heritage/:heritageId')
+  .get(leaderBoardValidation.getByHeritageId, leaderBoardController.getByHeritageId)
+
 // get detail, update, and delete LeaderBoard
 Router.route('/:id')
   .get(leaderBoardValidation.getLeaderBoardById, leaderBoardController.getLeaderBoardById)

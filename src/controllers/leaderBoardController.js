@@ -46,10 +46,20 @@ const deleteLeaderBoard = async (req, res, next) => {
   }
 }
 
+const getByHeritageId = async (req, res, next) => {
+  try {
+    const result = await leaderBoardService.getByHeritageId(req.params.heritageId, req.query)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const leaderBoardController = {
   getAll,
   createNew,
   getLeaderBoardById,
   updateLeaderBoard,
-  deleteLeaderBoard
+  deleteLeaderBoard,
+  getByHeritageId
 }

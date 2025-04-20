@@ -98,10 +98,55 @@ const deleteLeaderBoard = async (id) => {
   }
 }
 
+const getByHeritageId = async (heritageId, queryParams) => {
+  try {
+    const { page = 1, limit = 20 } = queryParams
+
+    // Tính toán skip cho pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    // Lấy data từ database
+    const leaderBoard = await leaderBoardModel.getByHeritageId({
+      heritageId,
+      skip,
+      limit: parseInt(limit)
+    })
+
+    if (!leaderBoard) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Leaderboard not found!')
+    }
+
+    // Đếm tổng số rankings
+    const totalItems = await leaderBoardModel.countRankings(heritageId)
+
+    // Tính tổng số trang
+    const totalPages = Math.ceil(totalItems / limit)
+
+    // Format response
+    return {
+      rankings: leaderBoard.rankings || [],
+      stats: leaderBoard.stats || {
+        totalParticipants: 0,
+        highestScore: 0,
+        averageScore: 0
+      },
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages,
+        totalItems
+      }
+    }
+  } catch (error) {
+    throw error
+  }
+}
+
 export const leaderBoardService = {
   getAll,
   createNew,
   getLeaderBoardById,
   updateLeaderBoard,
-  deleteLeaderBoard
+  deleteLeaderBoard,
+  getByHeritageId
 }
