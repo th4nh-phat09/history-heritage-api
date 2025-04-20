@@ -1,6 +1,7 @@
 import express from 'express'
 import { CONNECT_DB, CLOSE_DB } from './config/mongodb'
 import exitHook from 'async-exit-hook'
+import cookieParser from 'cookie-parser'
 import { APIs_V1 } from './routes/v1'
 import { env } from '~/config/environment'
 import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
@@ -10,6 +11,7 @@ import cors from 'cors'
 
 const START_SERVER = () => {
   const app = express()
+  app.use(cookieParser())
   app.use(cors(corsOptions))
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
