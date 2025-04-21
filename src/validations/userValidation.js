@@ -4,6 +4,8 @@ import ApiError from '~/utils/ApiError'
 import {
   EMAIL_RULE,
   EMAIL_RULE_MESSAGE,
+  JWT_TOKEN_RULE,
+  JWT_TOKEN_RULE_MESSAGE,
   OBJECT_ID_RULE,
   OBJECT_ID_RULE_MESSAGE,
   PASSWORD_RULE,

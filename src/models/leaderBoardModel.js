@@ -96,6 +96,16 @@ const findOneById = async (id) => {
   }
 }
 
+// Tìm leaderBoard bằng heritageId không có phân trang
+const findOneByHeritageId = async (heritageId) => {
+  try {
+    return await GET_DB()
+      .collection(LEADER_BOARD_COLLECTION_NAME)
+      .findOne({ heritageId: heritageId })
+  } catch (error) {
+    throw new Error(error)
+  }
+}
 
 // update thông tin
 const update = async (id, data) => {
@@ -133,6 +143,41 @@ const deleteOneById = async (id) => {
   }
 }
 
+// Lấy leaderBoard bằng heritageId với phân trang
+const getByHeritageId = async ({ heritageId, skip, limit }) => {
+  try {
+    const result = await GET_DB()
+      .collection(LEADER_BOARD_COLLECTION_NAME)
+      .findOne(
+        { heritageId: heritageId },
+        {
+          projection: {
+            rankings: { $slice: [skip, limit] },
+            stats: 1
+          }
+        }
+      )
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Đếm số lượng rankings trong leaderBoard
+const countRankings = async (heritageId) => {
+  try {
+    const result = await GET_DB()
+      .collection(LEADER_BOARD_COLLECTION_NAME)
+      .findOne(
+        { heritageId: heritageId },
+        { projection: { rankingsCount: { $size: '$rankings' } } }
+      )
+    return result?.rankingsCount || 0
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const leaderBoardModel = {
   LEADER_BOARD_COLLECTION_NAME,
   LEADER_BOARD_COLLECTION_SCHEMA,
@@ -141,5 +186,8 @@ export const leaderBoardModel = {
   countDocuments,
   findOneById,
   update,
-  deleteOneById
+  deleteOneById,
+  getByHeritageId,
+  countRankings,
+  findOneByHeritageId
 }

@@ -14,7 +14,7 @@ const createNew = async (req, res, next) => {
       .items(
         Joi.object({
           userId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
-          rank: Joi.number().required(),
+          rank: Joi.number(),
           score: Joi.number().required(),
           displayName: Joi.string().trim().strict(),
           completeDate: Joi.date()
@@ -113,10 +113,31 @@ const getAll = async (req, res, next) => {
   }
 }
 
+const getByHeritageId = async (req, res, next) => {
+  const paramsCondition = Joi.object({
+    heritageId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+  })
+
+  const queryCondition = Joi.object({
+    page: Joi.number().integer().min(1).default(1),
+    limit: Joi.number().integer().min(5).max(50).default(20)
+  })
+
+  try {
+    await paramsCondition.validateAsync(req.params, { abortEarly: false })
+    const validatedQuery = await queryCondition.validateAsync(req.query, { abortEarly: false })
+    req.query = validatedQuery
+    next()
+  } catch (error) {
+    next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
+  }
+}
+
 export const leaderBoardValidation = {
   createNew,
   getLeaderBoardById,
   updateLeaderBoard,
   deleteLeaderBoard,
-  getAll
+  getAll,
+  getByHeritageId
 }
