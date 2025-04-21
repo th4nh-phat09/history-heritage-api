@@ -10,10 +10,10 @@ export const PHONE_RULE_MESSAGE = 'Phone number must start with 0 and be exactly
 export const JWT_TOKEN_RULE = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/
 export const JWT_TOKEN_RULE_MESSAGE = 'Token is invalid. It must be a valid JWT format.'
 export const createSlug = (value) => {
-    return slugify(value, {
-        lower: true,
-        locale: 'vi',
-        trim: true,
-    })
+  return slugify(value, {
+    lower: true,
+    locale: 'vi',
+    trim: true
+  })
 }
 
