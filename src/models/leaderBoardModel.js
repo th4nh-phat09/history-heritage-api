@@ -133,7 +133,7 @@ const deleteOneById = async (id) => {
   }
 }
 
-// Thêm method mới
+// Lấy leaderBoard bằng heritageId với phân trang
 const getByHeritageId = async ({ heritageId, skip, limit }) => {
   try {
     const result = await GET_DB()
@@ -153,7 +153,7 @@ const getByHeritageId = async ({ heritageId, skip, limit }) => {
   }
 }
 
-// Thêm method để đếm số lượng rankings
+// Đếm số lượng rankings trong leaderBoard
 const countRankings = async (heritageId) => {
   try {
     const result = await GET_DB()
