@@ -4,6 +4,7 @@ import { historyHeritageRoute } from './historyHeritageRoute'
 import { userRoute } from './userRoute'
 import { leaderBoardRoute } from './leaderBoardRoute'
 import { knowledgeTestRoute } from './knowledgeTestRoute'
+import { mailRoute } from './mailRoute'
 
 const Router = express.Router()
 
@@ -23,5 +24,7 @@ Router.use('/leaderBoards', leaderBoardRoute)
 
 // knowledgeTest APIs
 Router.use('/knowledge-tests', knowledgeTestRoute)
+
+Router.use('/mail', mailRoute)
 
 export const APIs_V1 = Router

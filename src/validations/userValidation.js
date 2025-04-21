@@ -25,7 +25,9 @@ const createNew = async (req, res, next) => {
   })
   try {
     await correctCondition.validateAsync(req.body, {
-      abortEarly: false
+      abortEarly: false, 
+      allowUnknown: true
+
     })
     next()
   } catch (error) {
