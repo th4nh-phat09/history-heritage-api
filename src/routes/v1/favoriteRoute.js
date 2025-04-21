@@ -18,6 +18,7 @@ Router.route('/:id')
   .get(favoriteValidation.getFavoriteById, favoriteController.getFavoriteById)
   .put(favoriteValidation.update, favoriteController.update)
 
+// tạo mới nếu chưa có favorite list, nếu có rồi thì thêm vào danh sách item(heritageId)
 Router.route('/add-to-favorites')
   .post(favoriteValidation.addToFavorites, favoriteController.addToFavorites)
 

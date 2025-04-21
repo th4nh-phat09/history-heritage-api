@@ -96,6 +96,16 @@ const findOneById = async (id) => {
   }
 }
 
+// Tìm leaderBoard bằng heritageId không có phân trang
+const findOneByHeritageId = async (heritageId) => {
+  try {
+    return await GET_DB()
+      .collection(LEADER_BOARD_COLLECTION_NAME)
+      .findOne({ heritageId: heritageId })
+  } catch (error) {
+    throw new Error(error)
+  }
+}
 
 // update thông tin
 const update = async (id, data) => {
@@ -178,5 +188,6 @@ export const leaderBoardModel = {
   update,
   deleteOneById,
   getByHeritageId,
-  countRankings
+  countRankings,
+  findOneByHeritageId
 }

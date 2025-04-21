@@ -14,7 +14,7 @@ const createNew = async (req, res, next) => {
       .items(
         Joi.object({
           userId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
-          rank: Joi.number().required(),
+          rank: Joi.number(),
           score: Joi.number().required(),
           displayName: Joi.string().trim().strict(),
           completeDate: Joi.date()
