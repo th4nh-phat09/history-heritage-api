@@ -25,14 +25,19 @@ const HERITAGE_COLLECTION_SCHEMA = Joi.object({
   }).default({ averageRating: '0', totalReviews: '0', totalVisits: '0', totalFavorites: '0' }),
   knowledgeTestId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).allow(null).default(null),
   leaderboardId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).allow(null).default(null),
+  
   leaderboardSummary: Joi.object({
     topScore: Joi.string().trim().default('0'),
-    topUser: Joi.object({
-      userId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).allow(null).default(null),
-      userName: Joi.string().allow('').default('')
-    }).default({ userId: null, userName: '' }),
+    topUsers: Joi.array().items(
+      Joi.object({
+        userId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
+        userName: Joi.string().allow(''),
+        score: Joi.number()
+      })
+    ).max(10).default([]),
     totalParticipants: Joi.string().trim().default('0')
-  }).default({ topScore: '0', topUser: { userId: null, userName: '' }, totalParticipants: '0' }),
+  }).default({ topScore: '0', topUsers: [], totalParticipants: '0' }),
+
   knowledgeTestSummary: Joi.object({
     title: Joi.string().allow('').default(''),
     questionCount: Joi.string().trim().default('0'),
@@ -142,4 +147,4 @@ export const heritageModel = {
   updateOneById,
   deleteOneById,
   getDetailById
-} 
+}
