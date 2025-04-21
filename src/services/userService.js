@@ -94,7 +94,7 @@ const signIn = async (reqBody) => {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid email or password')
     }
 
-    if (user?.account?.isVerify === false) {
+    if (user?.account?.isVerified === false) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Email not verified')
     }
 

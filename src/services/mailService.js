@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes'
 import nodemailer from 'nodemailer'
 import generateConfirmationCode from '../utils/generateConfirmationCode.js'
 import { userModel } from '~/models/userModel'
+
 const sendVerificationEmail = async (email) => {
   try {
     const user = await userModel.findOneByEmail(email)
@@ -24,7 +25,7 @@ const sendVerificationEmail = async (email) => {
     await transporter.sendMail(mailOptions)
     await userModel.updateUser(user._id, {
       'account.code': code,
-      'account.codeExpiry': new Date(Date.now() + 60 * 1000)
+      'account.codeExpiry': new Date(Date.now() + 10 * 60 * 1000)
     })
     return 'Send code successfully!!'
   } catch (error) {
@@ -38,13 +39,13 @@ const verify_email = async (email, code) => {
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'User not found')
     }
-    if (user?.code !== code) {
+    if (user?.account?.code !== code) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid verification code')
     }
-    if (!user.code || !user.codeExpiry) {
+    if (!user?.account?.code || !user?.account.codeExpiry) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid verification code')
     }
-    const isCodeExpired = new Date() > user.codeExpiry
+    const isCodeExpired = new Date() > user.account.codeExpiry
     if (isCodeExpired) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Code has expired')
     }
