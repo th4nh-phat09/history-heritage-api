@@ -14,7 +14,8 @@
     "production": "npm run build && cross-env BUILD_MODE=production node -r dotenv/config ./build/src/server.js",
     "dev": "cross-env BUILD_MODE=dev nodemon --exec babel-node -r dotenv/config ./src/server.js",
     "scriptsImportData": "nodemon --exec babel-node -r dotenv/config ./src/scripts/import-heritage-data",
-    "scriptsAddSlug": "nodemon --exec babel-node -r dotenv/config ./src/scripts/addSlug"
+    "scriptsAddSlug": "nodemon --exec babel-node -r dotenv/config ./src/scripts/addSlug",
+    "test-socket": "nodemon --exec babel-node -r dotenv/config ./src/test/test-socket-client.js"
   },
   "dependencies": {
     "@babel/runtime": "^7.22.10",
@@ -31,8 +32,11 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.15.0",
+    "ms": "^2.1.3",
     "nodemailer": "^6.10.1",
     "slugify": "^1.6.6",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

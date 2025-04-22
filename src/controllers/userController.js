@@ -21,7 +21,7 @@ const createNew = async (req, res, next) => {
 
 const signIn = async (req, res, next) => {
   try {
-    const newUser = await userService.signIn(req.body)
+    const newUser = await userService.signIn(req.body, res)
     res.status(StatusCodes.OK).json(newUser)
   } catch (error) {
     next(error)

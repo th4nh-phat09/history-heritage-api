@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { mailService } from './mailService'
 import { JwtProvider } from '~/providers/JwtProvider'
 import { env } from '~/config/environment'
+import ms from 'ms'
+
 
 
 const getAll = async (queryParams) => {
@@ -81,7 +83,7 @@ const createNew = async (reqBody) => {
   }
 }
 
-const signIn = async (reqBody) => {
+const signIn = async (reqBody, res) => {
   try {
     // check email có tồn tại hay không
     const user = await userModel.findOneByEmail(reqBody.email)
@@ -110,18 +112,22 @@ const signIn = async (reqBody) => {
       role: userWithoutPassword.role
     }
     //tạo access token gửi về cho client
-    const accessToken = await JwtProvider.generateToken(userInfo, env.ACCESS_TOKEN_SECRET_SIGNATURE, '1h')
+    const accessToken = await JwtProvider.generateToken(userInfo, env.ACCESS_TOKEN_SECRET_SIGNATURE, '5s')
     //tạo refresh token gửi về cho client
     const refreshToken = await JwtProvider.generateToken(userInfo, env.REFRESH_TOKEN_SECRET_SIGNATURE, '14 days')
 
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: ms('14 days')
+    })
     delete userWithoutPassword.account
     delete userWithoutPassword._id
     //trả về kqua cho client
     return {
-      ...userWithoutPassword,
-      ...userInfo,
+      userInfo: userWithoutPassword,
       accessToken,
-      refreshToken
     }
   } catch (error) {
     throw error
