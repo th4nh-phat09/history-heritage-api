@@ -81,6 +81,7 @@ const findBySocketId = async (socketId) => {
     }
 }
 
+
 const update = async (id, data) => {
     try {
         // Lọc những field không cho phép update
@@ -209,6 +210,35 @@ const findOnlineByRoomId = async (chatRoomId) => {
     }
 }
 
+const findByUserId = async (userId) => {
+    try {
+        return await GET_DB()
+            .collection(PARTICIPANT_COLLECTION_NAME)
+            .findOne({ userId: userId })
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+const findByUserIdAndRoomId = async (userId, chatRoomId) => {
+    try {
+        return await GET_DB()
+            .collection(PARTICIPANT_COLLECTION_NAME)
+            .findOne({ userId: userId, chatRoomId: chatRoomId })
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
+const updateStatusByUserIdAndRoomId = async (userId, chatRoomId, status) => {
+    try {
+        return await GET_DB()
+            .collection(PARTICIPANT_COLLECTION_NAME)
+            .findOneAndUpdate({ userId: userId, chatRoomId: chatRoomId }, { $set: { status: status } })
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
 export const chatRoomParticipantModel = {
     PARTICIPANT_COLLECTION_NAME,
     PARTICIPANT_COLLECTION_SCHEMA,
@@ -222,5 +252,8 @@ export const chatRoomParticipantModel = {
     deleteOneById,
     removeFromRoom,
     findByRoomId,
-    findOnlineByRoomId
+    findOnlineByRoomId,
+    findByUserId,
+    findByUserIdAndRoomId,
+    updateStatusByUserIdAndRoomId
 } 

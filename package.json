@@ -15,7 +15,8 @@
     "dev": "cross-env BUILD_MODE=dev nodemon --exec babel-node -r dotenv/config ./src/server.js",
     "scriptsImportData": "nodemon --exec babel-node -r dotenv/config ./src/scripts/import-heritage-data",
     "scriptsAddSlug": "nodemon --exec babel-node -r dotenv/config ./src/scripts/addSlug",
-    "test-socket": "nodemon --exec babel-node -r dotenv/config ./src/test/test-socket-client.js"
+    "test-socket": "nodemon --exec babel-node -r dotenv/config ./src/test/test-socket-client.js",
+    "create-chatrooms": "nodemon --exec babel-node -r dotenv/config ./src/scripts/create-chatrooms.js"
   },
   "dependencies": {
     "@babel/runtime": "^7.22.10",

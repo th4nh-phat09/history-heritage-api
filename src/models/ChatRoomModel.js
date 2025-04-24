@@ -153,9 +153,9 @@ const updateLastMessage = async (roomId, messageData) => {
                             content: messageData.content,
                             userId: messageData.userId,
                             username: messageData.username,
-                            sentAt: new Date()
+                            sentAt: Date.now()
                         },
-                        updatedAt: new Date()
+                        updatedAt: Date.now()
                     }
                 },
                 { returnDocument: 'after' }
@@ -184,10 +184,11 @@ const findAll = async ({ page, limit, sort, order }) => {
     try {
         const skip = (page - 1) * limit
         const sortCriteria = { [sort]: order === 'asc' ? 1 : -1 }
+        console.log(page, limit, sort, order)
 
         const results = await GET_DB()
             .collection(CHATROOM_COLLECTION_NAME)
-            .find()
+            .find({})
             .sort(sortCriteria)
             .skip(skip)
             .limit(limit)

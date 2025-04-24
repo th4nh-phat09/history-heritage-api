@@ -11,11 +11,11 @@ const MESSAGE_COLLECTION_SCHEMA = Joi.object({
     content: Joi.string().required(),
     type: Joi.string().valid('TEXT', 'IMAGE', 'FILE', 'AUDIO', 'VIDEO', 'SYSTEM').default('TEXT'),
     status: Joi.string().valid('SENT', 'DELIVERED', 'READ', 'DELETED').default('SENT'),
-    sender: Joi.object({
-        userId: Joi.string(),
-        username: Joi.string()
-    }),
-    metadata: Joi.object().default({}),
+    // sender: Joi.object({
+    //     userId: Joi.string(),
+    //     username: Joi.string()
+    // }),
+    // metadata: Joi.object().default({}),
     createAt: Joi.date().timestamp('javascript').default(Date.now),
     updatedAt: Joi.date().timestamp('javascript').default(null)
 })

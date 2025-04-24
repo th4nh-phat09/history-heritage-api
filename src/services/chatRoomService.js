@@ -105,10 +105,10 @@ const joinRoom = async (roomId, userData) => {
 }
 
 // Rời phòng chat
-const leaveRoom = async (roomId, socketId) => {
+const leaveRoom = async (roomId, userId) => {
     try {
         // Kiểm tra dữ liệu
-        if (!socketId) {
+        if (!userId) {
             throw new SocketError(
                 SocketErrorCodes.VALIDATION_ERROR,
                 'Thiếu thông tin kết nối',
@@ -127,18 +127,18 @@ const leaveRoom = async (roomId, socketId) => {
         }
 
         // Tìm người tham gia
-        const participant = await chatRoomParticipantModel.findBySocketId(socketId)
+        const participant = await chatRoomParticipantModel.findByUserIdAndRoomId(userId, roomId)
 
         if (!participant) {
             throw new SocketError(
                 SocketErrorCodes.NOT_IN_ROOM,
                 'Người dùng không có trong phòng',
-                { socketId, roomId }
+                { userId, roomId }
             )
         }
 
         // Cập nhật trạng thái
-        await chatRoomParticipantModel.updateStatusBySocketId(socketId, 'OFFLINE')
+        await chatRoomParticipantModel.updateStatusByUserIdAndRoomId(userId, roomId, 'OFFLINE')
 
         return { success: true, message: 'Đã rời phòng chat' }
     } catch (error) {
@@ -185,7 +185,7 @@ const saveMessage = async (messageData) => {
         }
 
         // Lấy thông tin người gửi
-        const sender = await chatRoomParticipantModel.findBySocketId(messageData.userId)
+        const sender = await chatRoomParticipantModel.findByRoomAndUser(messageData.roomId, messageData.userId)
 
         // Kiểm tra người dùng đã tham gia phòng chưa
         if (!sender) {
@@ -202,11 +202,7 @@ const saveMessage = async (messageData) => {
             userId: messageData.userId,
             content: messageData.content,
             type: messageData.type || 'TEXT',
-            status: 'SENT',
-            sender: sender ? {
-                userId: sender.userId,
-                username: sender.username
-            } : undefined
+            status: 'SENT'
         }
 
         const result = await messageModel.createNew(msgData)
