@@ -6,18 +6,28 @@ import { APIs_V1 } from './routes/v1'
 import { env } from '~/config/environment'
 import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
 import { corsOptions } from '~/config/cors'
+import { Server } from 'socket.io'
+import { createServer } from 'http'
+import { registerSockets } from "~/sockets/index.js"
 import cors from 'cors'
 
 
 const START_SERVER = () => {
   const app = express()
+  const server = createServer(app)
+  const io = new Server(server, {
+    cors: corsOptions
+  })
+  //global._io = io
+  registerSockets(io)
+  console.log('registerSockets')
   app.use(cookieParser())
   app.use(cors(corsOptions))
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
   app.use('/v1', APIs_V1)
   app.use(errorHandlingMiddleware)
-  app.listen(env.LOCAL_APP_PORT, env.LOCAL_APP_HOST, () => {
+  server.listen(env.LOCAL_APP_PORT, env.LOCAL_APP_HOST, () => {
     console.log(`Hello World, I am running at ${env.LOCAL_APP_PORT}:${env.LOCAL_APP_HOST}/`)
   })
   console.log(env.BUILD_MODE)
