@@ -1,15 +1,16 @@
 import { chatRoomService } from '~/services/chatRoomService'
-import { handleSocketError, SocketError, SocketErrorCodes } from '~/utils/SocketError'
-
+import { SocketError } from '~/utils/SocketError.js'
+import { SocketErrorCodes } from '~/utils/constants.js'
+import { chatRoomController } from '~/controllers/chatRoomController.js'
+import { handleSocketError } from '~/utils/handleSocketError.js'
 /**
  * Xử lý các sự kiện socket cho chat room
  */
 export function chatRoomSocket(io, socket) {
-    console.log(`Chat room socket initialized for socket: ${socket.id}`)
-
     // Tham gia phòng chat
-    socket.on('join-room', async ({ roomId, username }) => {
+    socket.on('join-room', async ({ roomId, userData }) => {
         try {
+            console.log('join-room', roomId, userData)
             // Kiểm tra dữ liệu đầu vào
             if (!roomId) {
                 throw new SocketError(
@@ -19,20 +20,18 @@ export function chatRoomSocket(io, socket) {
                 )
             }
 
-            if (!username) {
+            if (!userData) {
                 throw new SocketError(
                     SocketErrorCodes.VALIDATION_ERROR,
-                    'Thiếu tên người dùng',
+                    'Thiếu thông tin người dùng',
                     { event: 'join-room', roomId }
                 )
             }
-
-            console.log(`User ${username} trying to join room ${roomId}`)
-
-            // Xử lý logic join phòng thông qua service
-            const result = await chatRoomService.joinRoom(roomId, {
+            // console.log(`User ${userData.username} trying to join room ${roomId}`)
+            await chatRoomController.joinRoom(roomId, {
                 socketId: socket.id,
-                username
+                userId: userData.userId,
+                username: userData.username
             })
 
             // Thêm socket vào phòng
@@ -46,9 +45,9 @@ export function chatRoomSocket(io, socket) {
             })
 
             // Thông báo cho tất cả người trong phòng
-            io.to(roomId).emit('user-joined', {
-                userId: socket.id,
-                username,
+            socket.to(roomId).emit('user-joined', {
+                userId: userData.userId,
+                username: userData.username,
                 timestamp: new Date()
             })
 
@@ -84,7 +83,8 @@ export function chatRoomSocket(io, socket) {
 
             // Thông báo cho mọi người trong phòng
             io.to(roomId).emit('user-left', {
-                userId: socket.id,
+                userId: userData.userId,
+                username: userData.username,
                 timestamp: new Date()
             })
 
@@ -201,11 +201,3 @@ export function chatRoomSocket(io, socket) {
     })
 }
 
-/**
- * Đăng ký sự kiện socket cho chat room
- */
-export default function registerChatRoomSocket(io) {
-    io.on('connection', (socket) => {
-        chatRoomSocket(io, socket)
-    })
-}

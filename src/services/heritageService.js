@@ -1,5 +1,6 @@
 import { StatusCodes } from 'http-status-codes'
 import { heritageModel } from '~/models/heritageModel'
+import { chatRoomModel } from '~/models/ChatRoomModel'
 import ApiError from '~/utils/ApiError'
 import { createSlug } from '~/utils/validators'
 
@@ -71,6 +72,10 @@ const createHeritage = async (data) => {
 
     const createdHeritage = await heritageModel.createNew(dataWithSlug)
     const getNewHeritage = await heritageModel.findOneById(createdHeritage.insertedId)
+    await chatRoomModel.createNew({
+      name: 'Phòng chat ' + getNewHeritage.name,
+      heritageId: getNewHeritage._id.toString(),
+    })
     return getNewHeritage
   } catch (error) {
     throw error

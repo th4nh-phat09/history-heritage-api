@@ -27,7 +27,8 @@ const INVALID_DATA_UPDATE = ['_id', 'createAt']
 // Hàm validate của Joi
 const validationBeforeCreate = async (data) => {
     return await CHATROOM_COLLECTION_SCHEMA.validateAsync(data, {
-        abortEarly: false
+        abortEarly: false,
+        allowUnknown: true
     })
 }
 
@@ -43,8 +44,8 @@ const createNew = async (data) => {
             .collection(CHATROOM_COLLECTION_NAME)
             .insertOne({
                 ...validData,
-                createAt: new Date(),
-                updatedAt: new Date()
+                createAt: Date.now(),
+                updatedAt: Date.now()
             })
     } catch (error) {
         throw new Error(error)

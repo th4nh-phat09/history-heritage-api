@@ -8,10 +8,10 @@ const PARTICIPANT_COLLECTION_NAME = 'ChatRoomParticipant'
 const PARTICIPANT_COLLECTION_SCHEMA = Joi.object({
     chatRoomId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
     userId: Joi.string().required(),
-    socketId: Joi.string(),
+    // socketId: Joi.string(),
     username: Joi.string().default('Khách'),
     status: Joi.string().valid('ONLINE', 'OFFLINE', 'AWAY').default('OFFLINE'),
-    lastActive: Joi.date().default(Date.now),
+    lastActive: Joi.date().timestamp('javascript').default(Date.now),
     joinedAt: Joi.date().default(Date.now),
     createAt: Joi.date().timestamp('javascript').default(Date.now),
     updatedAt: Joi.date().timestamp('javascript').default(null)
@@ -97,7 +97,7 @@ const update = async (id, data) => {
                 {
                     $set: {
                         ...data,
-                        updatedAt: new Date()
+                        updatedAt: Date.now()
                     }
                 },
                 { returnDocument: 'after' }

@@ -1,30 +1,13 @@
-import chatRoomService from '~/services/chatRoomService.js'
+import { chatRoomService } from '~/services/chatRoomService.js'
 
 //Tham gia phòng chat
 
 const joinRoom = async (roomId, userData) => {
     try {
         // Kiểm tra phòng tồn tại không
-        let room = await chatRoomService.getChatRoomById(roomId)
-
-        // Nếu phòng không tồn tại, tạo mới
-        if (!room) {
-            room = await chatRoomService.createChatRoom({
-                name: `Phòng chat ${roomId}`,
-                heritageId: roomId, // Trong thực tế, cần xác thực heritageId hợp lệ
-                type: 'HERITAGE',
-                status: 'ACTIVE'
-            })
-        }
-
-        // Thêm người dùng vào phòng
-        const result = await chatRoomService.addUserToRoom(room.id, userData)
-
+        const result = await chatRoomService.joinRoom(roomId, userData)
         return result
-    } catch (error) {
-        console.error('Controller - Error joining room:', error)
-        throw error
-    }
+    } catch (error) { throw error }
 }
 
 //Rời phòng chat
@@ -75,7 +58,7 @@ const getRoomUsers = async (roomId) => {
     }
 }
 
-export default {
+export const chatRoomController = {
     joinRoom,
     leaveRoom,
     saveMessage,

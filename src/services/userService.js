@@ -123,7 +123,7 @@ const signIn = async (reqBody, res) => {
       maxAge: ms('14 days')
     })
     delete userWithoutPassword.account
-    delete userWithoutPassword._id
+    // delete userWithoutPassword._id
     //trả về kqua cho client
     return {
       userInfo: userWithoutPassword,

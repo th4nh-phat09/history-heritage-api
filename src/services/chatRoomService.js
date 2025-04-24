@@ -1,7 +1,9 @@
 import { chatRoomModel } from '~/models/ChatRoomModel.js'
 import { chatRoomParticipantModel } from '~/models/ChatRoomParticipantModel.js'
 import { messageModel } from '~/models/MessageModel.js'
-import { SocketError, SocketErrorCodes, wrapSocketError } from '~/utils/SocketError'
+import { SocketError } from '~/utils/SocketError.js'
+import { SocketErrorCodes } from '~/utils/constants.js'
+import { wrapSocketError } from '~/utils/wrapSocketError.js'
 
 // Lấy thông tin phòng chat theo ID
 const getRoomById = async (roomId) => {
@@ -53,37 +55,13 @@ const createChatRoom = async (roomData) => {
 const joinRoom = async (roomId, userData) => {
     try {
         // Kiểm tra dữ liệu
-        if (!userData || !userData.socketId) {
-            throw new SocketError(
-                SocketErrorCodes.VALIDATION_ERROR,
-                'Thiếu thông tin người dùng',
-                { userData }
-            )
-        }
+        if (!userData || !userData.socketId)
+            throw new SocketError(SocketErrorCodes.VALIDATION_ERROR, 'Thiếu thông tin người dùng', { userData })
 
         // Kiểm tra phòng tồn tại
         let room = await chatRoomModel.findOneById(roomId)
-
-        // Nếu phòng không tồn tại, tạo mới
-        if (!room) {
-            const newRoomData = {
-                name: `Phòng chat ${roomId}`,
-                heritageId: roomId,
-                type: 'HERITAGE',
-                status: 'ACTIVE'
-            }
-
-            const result = await chatRoomModel.createNew(newRoomData)
-            if (!result.insertedId) {
-                throw new SocketError(
-                    SocketErrorCodes.DATABASE_ERROR,
-                    'Không thể tạo phòng chat mới',
-                    { roomId, newRoomData }
-                )
-            }
-
-            room = await chatRoomModel.findOneById(result.insertedId)
-        }
+        if (!room)
+            throw new SocketError(SocketErrorCodes.ROOM_NOT_FOUND, 'Phòng chat không tồn tại', { roomId })
 
         // Tìm người dùng đã tồn tại trong phòng chưa
         const existingParticipant = await chatRoomParticipantModel.findByRoomAndUser(
@@ -96,30 +74,25 @@ const joinRoom = async (roomId, userData) => {
             const result = await chatRoomParticipantModel.update(
                 existingParticipant._id,
                 {
-                    socketId: userData.socketId,
+                    //socketId: userData.socketId,
                     status: 'ONLINE',
-                    lastActive: new Date()
+                    lastActive: Date.now()
                 }
             )
-            return result.value
+            return result
         } else {
             // Tạo mới nếu chưa tồn tại
             const participantData = {
                 chatRoomId: room._id.toString(),
-                userId: userData.userId || userData.socketId,
-                socketId: userData.socketId,
-                username: userData.username || 'Khách',
+                userId: userData.userId,
+                // socketId: userData.socketId,
+                username: userData.username,
                 status: 'ONLINE'
             }
 
             const result = await chatRoomParticipantModel.createNew(participantData)
-            if (!result.insertedId) {
-                throw new SocketError(
-                    SocketErrorCodes.DATABASE_ERROR,
-                    'Không thể thêm người dùng vào phòng',
-                    { participantData }
-                )
-            }
+            if (!result.insertedId)
+                throw new SocketError(SocketErrorCodes.DATABASE_ERROR, 'Không thể thêm người dùng vào phòng', { participantData })
 
             // Cập nhật danh sách người tham gia trong phòng
             await chatRoomModel.addParticipant(room._id.toString(), participantData.userId)

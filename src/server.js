@@ -10,7 +10,6 @@ import { Server } from 'socket.io'
 import { createServer } from 'http'
 import { registerSockets } from "~/sockets/index.js"
 import cors from 'cors'
-import { log } from 'console'
 
 
 const START_SERVER = () => {
