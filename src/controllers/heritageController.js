@@ -21,6 +21,7 @@ const createHeritage = async (req, res, next) => {
 
 const updateHeritage = async (req, res, next) => {
   try {
+    console.log(123);
     const result = await heritageService.updateHeritage(req.params.id, req.body)
     res.status(StatusCodes.OK).json(result)
   } catch (error) {

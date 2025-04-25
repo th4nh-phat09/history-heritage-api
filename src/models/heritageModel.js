@@ -25,7 +25,7 @@ const HERITAGE_COLLECTION_SCHEMA = Joi.object({
   }).default({ averageRating: '0', totalReviews: '0', totalVisits: '0', totalFavorites: '0' }),
   knowledgeTestId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).allow(null).default(null),
   leaderboardId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).allow(null).default(null),
-  
+
   leaderboardSummary: Joi.object({
     topScore: Joi.string().trim().default('0'),
     topUsers: Joi.array().items(
@@ -66,12 +66,12 @@ const getCollection = () => {
   return GET_DB().collection(HERITAGE_COLLECTION_NAME)
 }
 
-// --- Các hàm thao tác với Database --- 
+// --- Các hàm thao tác với Database ---
 
 // Tạo mới một di tích
 const createNew = async (data) => {
   try {
-    // Validate dữ liệu trước khi insert 
+    // Validate dữ liệu trước khi insert
     const validatedData = await HERITAGE_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
     const result = await getCollection().insertOne(validatedData) // Dùng validatedData đã được validate và áp dụng default
     return result
@@ -137,7 +137,7 @@ const getDetailById = async (id) => {
   } catch (error) { throw new Error(error) }
 }
 
-// --- Export Model --- 
+// --- Export Model ---
 export const heritageModel = {
   HERITAGE_COLLECTION_NAME,
   HERITAGE_COLLECTION_SCHEMA,

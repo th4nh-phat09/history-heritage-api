@@ -1,44 +1,72 @@
 import { StatusCodes } from 'http-status-codes'
 import { JwtProvider } from '~/providers/JwtProvider'
 import { env } from '~/config/environment'
+import ApiError from '~/utils/ApiError'
+import { HEADER } from '~/constants/header.constants'
+import jwt from 'jsonwebtoken'
 
-const isAuthorized = async (req, res, next) => {
-  //lấy token từ cookie từ req mà client gửi lên
-  const accessTokenFromCookie = req.cookies?.accessToken
-  if (!accessTokenFromCookie) {
-    res.status(StatusCodes.UNAUTHORIZED).json({ message: 'UNAUTHORIZED!' })
-    return
+const authentication = (async (req, res, next) => {
+  const userId = req.headers[HEADER.CLIENT_ID]
+
+  if (!userId) {
+    throw new ApiError(StatusCodes.UNAUTHORIZED, 'Not found userId')
   }
+
+  const bearerAccessToken = req.headers[HEADER.AUTHORIZATION]
+  const accessToken = bearerAccessToken?.split(' ')[1]
+
+  if (!accessToken) {
+    throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid access token')
+  }
+
   try {
-    //verify token từ cookie
-    const verifyAccessTokenCookie = await JwtProvider.verifyToken(accessTokenFromCookie, env.ACCESS_TOKEN_SECRET_SIGNATURE)
+    // Synchronously verify access token
+    const decodedUser = JwtProvider.verifyToken(accessToken, env.ACCESS_TOKEN_SECRET_SIGNATURE)
+    console.log(decodedUser);
 
-    //gắn payload vào req để khi đi đến các tầng sau như Controller có thể sử dụng
-    req.jwtDecoded = verifyAccessTokenCookie
-    next()
-  } catch (error) {
-    if (error?.message?.includes('jwt expired')) {
-      res.status(StatusCodes.GONE).json({ message: 'token expired!' })
-      return
+    if (userId !== decodedUser.id) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Token does not match')
     }
-    res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Please Login!' })
+    if (!decodedUser.isAdmin) {
+      if (req.query?.userId && req.query.userId !== userId) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, 'Not authenticated')
+      }
+      if (req.params?.userId && req.params.userId !== userId) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, 'Not authenticated')
+      }
+    }
+
+    req.user = decodedUser
+
+    return next()
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Token expired')
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid token')
+    }
+    throw error
   }
-}
+})
 
-const checkRole = (roles) => {
-  return (req, res, next) => {
-    if (!req.jwtDecoded)
-      return res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Unauthorized' })
+const authorization = (async (req, res, next) => {
+  try {
+    const bearerAccessToken = req.headers[HEADER.AUTHORIZATION]
+    const accessToken = bearerAccessToken?.split(' ')[1]
 
-    if (!roles.includes(req.jwtDecoded.role))
-      return res.status(StatusCodes.FORBIDDEN).json({ message: 'Access denied' })
+    const decodedUser = jwt.verify(accessToken, env.ACCESS_TOKEN_SECRET_SIGNATURE)
 
-    req.user = req.jwtDecoded
-    next()
+    if (decodedUser.role === 'admin') {
+      return next()
+    } else {
+      throw new ApiError(StatusCodes.FORBIDDEN, 'Access denied')
+    }
+  } catch (error) {
+    next(error)
   }
-}
+})
 
 export const authMiddlewares = {
-  isAuthorized,
-  checkRole
+  authentication,
+  authorization
 }

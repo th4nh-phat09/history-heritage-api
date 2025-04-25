@@ -1,7 +1,8 @@
 import express from 'express'
 import { userController } from '~/controllers/userController'
-import { userValidation } from '~/validations/userValidation'
 import { authMiddlewares } from '~/middlewares/authMiddeware'
+import { userValidation } from '~/validations/userValidation'
+// import { authMiddlewares } from '~/middlewares/authMiddeware'
 
 const Router = express.Router()
 
@@ -11,9 +12,10 @@ Router.route('/register')
 
 // get all user
 Router.route('/')
-  .get(userValidation.getAll, userController.getAll)
   .post(userValidation.signIn, userController.signIn)
 
+
+Router.use(authMiddlewares.authentication)
 // get detail, update, and delete user
 Router.route('/:id')
   .get(userValidation.getUserById, userController.getUserById)
@@ -26,5 +28,11 @@ Router.route('/refresh_token')
 
 Router.route('/logout')
   .delete(userController.logout)
+
+Router.use(authMiddlewares.authorization)
+// get all user
+Router.route('/')
+  .get(userValidation.getAll, userController.getAll)
+
 
 export const userRoute = Router
