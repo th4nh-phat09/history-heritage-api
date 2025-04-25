@@ -8,8 +8,6 @@ import { JwtProvider } from '~/providers/JwtProvider'
 import { env } from '~/config/environment'
 import ms from 'ms'
 
-
-
 const getAll = async (queryParams) => {
   try {
     const { page, limit, search, sort, order } = queryParams

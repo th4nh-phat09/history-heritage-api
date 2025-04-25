@@ -1,5 +1,6 @@
 import { userService } from '~/services/userService'
 import { StatusCodes } from 'http-status-codes'
+import ms from 'ms'
 
 const getAll = async (req, res, next) => {
   try {
@@ -28,7 +29,7 @@ const signIn = async (req, res, next) => {
   }
 }
 
-const logout = async (req, res, next) => {
+const logout = async (req, res) => {
   try {
     res.clearCookie('accessToken')
     res.clearCookie('refreshToken')
@@ -38,7 +39,7 @@ const logout = async (req, res, next) => {
   }
 }
 
-const refreshToken = async (req, res, next) => {
+const refreshToken = async (req, res) => {
   try {
     const newAccessToken = await userService.refreshToken(req.body?.refreshToken)
     //set lại cookie cho client
@@ -73,27 +74,6 @@ const getUserById = async (req, res, next) => {
 const updateUser = async (req, res, next) => {
   try {
     const result = await userService.updateUser(req.params.id, req.body)
-    //set lại cookie cho client
-    res.cookie(
-      'accessToken',
-      result.accessToken.toString(),
-      {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: ms('14 days')
-      }
-    )
-    res.cookie(
-      'refreshToken',
-      result.refreshToken.toString(),
-      {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: ms('14 days')
-      }
-    )
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
     next(error)
@@ -108,7 +88,6 @@ const deleteAccount = async (req, res, next) => {
     next(error)
   }
 }
-
 
 
 export const userController = {
