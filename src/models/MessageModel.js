@@ -143,12 +143,12 @@ const deleteOneById = async (id) => {
 }
 
 // Lấy tin nhắn theo phòng chat
-const findByChatRoomId = async (chatRoomId, limit = 50) => {
+const findByChatRoomId = async (chatRoomId, limit = 2) => {
     try {
         return await GET_DB()
             .collection(MESSAGE_COLLECTION_NAME)
             .find({ chatRoomId: chatRoomId })
-            .sort({ createAt: -1 })
+            .sort({ createAt: 1 })
             .limit(limit)
             .toArray()
     } catch (error) {
