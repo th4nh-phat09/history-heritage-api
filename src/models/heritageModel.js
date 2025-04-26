@@ -25,7 +25,7 @@ const HERITAGE_COLLECTION_SCHEMA = Joi.object({
   }).default({ averageRating: '0', totalReviews: '0', totalVisits: '0', totalFavorites: '0' }),
   knowledgeTestId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).allow(null).default(null),
   leaderboardId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).allow(null).default(null),
-  
+
   leaderboardSummary: Joi.object({
     topScore: Joi.string().trim().default('0'),
     topUsers: Joi.array().items(
@@ -83,6 +83,14 @@ const findOneById = async (heritageId) => {
   try {
     // Cần chuyển heritageId thành ObjectId
     const result = await getCollection().findOne({ _id: new ObjectId(heritageId) })
+    return result
+  } catch (error) { throw new Error(error) }
+}
+
+const findOneBySlug = async (nameSlug) => {
+  try {
+    // Cần chuyển heritageId thành ObjectId
+    const result = await getCollection().findOne({ nameSlug: nameSlug })
     return result
   } catch (error) { throw new Error(error) }
 }
@@ -146,5 +154,6 @@ export const heritageModel = {
   findListHeritages,
   updateOneById,
   deleteOneById,
-  getDetailById
+  getDetailById,
+  findOneBySlug
 }

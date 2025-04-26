@@ -122,10 +122,22 @@ const getHeritageDetail = async (id) => {
   }
 }
 
+const getHeritageBySlug = async (nameSlug) => {
+  try {
+    const result = await heritageModel.findOneBySlug(nameSlug)
+    if (!result)
+      throw new ApiError(StatusCodes.NOT_FOUND, 'The specified heritage site could not be found.')
+    return result
+  } catch (error) {
+    throw error
+  }
+}
+
 export const heritageService = {
   getHeritages,
   createHeritage,
   updateHeritage,
   deleteHeritage,
-  getHeritageDetail
+  getHeritageDetail,
+  getHeritageBySlug
 }

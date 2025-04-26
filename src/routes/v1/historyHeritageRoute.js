@@ -9,6 +9,9 @@ Router.route('/')
   .get(heritageValidation.getHeritages, heritageController.getHeritages)
   .post(heritageValidation.createHeritage, heritageController.createHeritage)
 
+Router.route('/:nameSlug')
+  .get(heritageValidation.getHeritageBySlug, heritageController.getHeritageBySlug)
+
 // Lấy chi tiết, cập nhật và xóa di tích
 Router.route('/:id')
   .get(heritageValidation.getHeritageById, heritageController.getHeritageDetail)
