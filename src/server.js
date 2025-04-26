@@ -8,7 +8,7 @@ import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
 import { corsOptions } from '~/config/cors'
 import { Server } from 'socket.io'
 import { createServer } from 'http'
-import { registerSockets } from "~/sockets/index.js"
+import { registerSockets } from '~/sockets/index.js'
 import cors from 'cors'
 
 
@@ -27,7 +27,7 @@ const START_SERVER = () => {
   app.use(express.urlencoded({ extended: true }))
   app.use('/v1', APIs_V1)
   app.use(errorHandlingMiddleware)
-  server.listen(env.LOCAL_APP_PORT, env.LOCAL_APP_HOST, () => {
+  server.listen(env.LOCAL_APP_PORT, () => {
     console.log(`Hello World, I am running at ${env.LOCAL_APP_PORT}:${env.LOCAL_APP_HOST}/`)
   })
   console.log(env.BUILD_MODE)
@@ -39,7 +39,6 @@ const START_SERVER = () => {
   })
 
 }
-
 
 
 (async () => {

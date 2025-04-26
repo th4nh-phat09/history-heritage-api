@@ -1,6 +1,15 @@
 import { env } from '~/config/environment'
 
-export const WHITELIST_DOMAINS = []
+export const WHITELIST_DOMAINS = [
+    'http://localhost',
+    'http://localhost:80',
+    'http://localhost:443',
+    'http://localhost:4200', // nếu dev dùng Vite/React
+    'http://localhost:4173',
+    'https://heritage.thuandev.id.vn',
+    'https://heritage.thuandev.id.vn/'
+    // Sau này có domain nào muốn cho qua cors thì bỏ ở đây
+  ]
 export const WEBSITE_DOMAIN = (env.BUILD_MODE === 'production') ? env.WEBSITE_DOMAIN_PRODUCTION : env.WEBSITE_DOMAIN_DEVELOPMENT
 /**
  * Các mã lỗi tiêu chuẩn cho Socket.IO
