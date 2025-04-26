@@ -61,12 +61,7 @@ const getByUserId = async (userId, queryParams) => {
 
     return {
       items: favorite.items || [],
-      pagination: {
-        page: queryParams.page,
-        limit: queryParams.limit,
-        totalPages: Math.ceil(favorite.total / queryParams.limit),
-        totalItems: favorite.total
-      }
+      pagination: favorite.pagination || []
     }
   } catch (error) {
     throw error

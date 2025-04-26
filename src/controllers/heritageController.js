@@ -47,10 +47,21 @@ const getHeritageDetail = async (req, res, next) => {
   }
 }
 
+const getHeritageBySlug = async (req, res, next) => {
+  try {
+    const result = await heritageService.getHeritageBySlug(req.params.nameSlug)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
+
 export const heritageController = {
   getHeritages,
   createHeritage,
   updateHeritage,
   deleteHeritage,
-  getHeritageDetail
+  getHeritageDetail,
+  getHeritageBySlug
 }

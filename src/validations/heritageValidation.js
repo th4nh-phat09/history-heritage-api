@@ -62,6 +62,19 @@ const getHeritageById = async (req, res, next) => {
   }
 }
 
+const getHeritageBySlug = async (req, res, next) => {
+  const correctCondition = Joi.object({
+    nameSlug: Joi.string().required()
+  })
+
+  try {
+    await correctCondition.validateAsync(req.params, { abortEarly: false })
+    next()
+  } catch (error) {
+    next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
+  }
+}
+
 const createHeritage = async (req, res, next) => {
   const correctCondition = Joi.object({
     name: Joi.string().required().min(3).max(100).trim().strict().messages({
@@ -223,5 +236,6 @@ export const heritageValidation = {
   getHeritageById,
   createHeritage,
   updateHeritage,
-  deleteHeritage
+  deleteHeritage,
+  getHeritageBySlug
 } 

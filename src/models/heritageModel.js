@@ -87,6 +87,14 @@ const findOneById = async (heritageId) => {
   } catch (error) { throw new Error(error) }
 }
 
+const findOneBySlug = async (nameSlug) => {
+  try {
+    // Cần chuyển heritageId thành ObjectId
+    const result = await getCollection().findOne({ nameSlug: nameSlug })
+    return result
+  } catch (error) { throw new Error(error) }
+}
+
 // Lấy danh sách di tích với bộ lọc, sắp xếp và phân trang
 const findListHeritages = async ({ filter, sort, skip, limit }) => {
   try {
@@ -146,5 +154,6 @@ export const heritageModel = {
   findListHeritages,
   updateOneById,
   deleteOneById,
-  getDetailById
+  getDetailById,
+  findOneBySlug
 }
