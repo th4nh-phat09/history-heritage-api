@@ -1,20 +1,19 @@
 import { chatRoomService } from '~/services/chatRoomService.js'
 
-//Tham gia phòng chat
-
+// Tham gia phòng chat (dùng chung cho chatroom và DM)
 const joinRoom = async (roomId, userData) => {
     try {
-        // Kiểm tra phòng tồn tại không
         const result = await chatRoomService.joinRoom(roomId, userData)
         return result
-    } catch (error) { throw error }
+    } catch (error) {
+        throw error
+    }
 }
 
-//Rời phòng chat
-
-const leaveRoom = async (roomId, socketId) => {
+// Rời phòng chat (dùng chung cho chatroom và DM)
+const leaveRoom = async (roomId, userId) => {
     try {
-        const result = await chatRoomService.removeUserFromRoom(roomId, socketId)
+        const result = await chatRoomService.leaveRoom(roomId, userId)
         return result
     } catch (error) {
         console.error('Controller - Error leaving room:', error)
@@ -22,11 +21,10 @@ const leaveRoom = async (roomId, socketId) => {
     }
 }
 
-//Lưu tin nhắn mới
-
+// Lưu tin nhắn mới (dùng chung cho chatroom và DM)
 const saveMessage = async (messageData) => {
     try {
-        const message = await chatRoomService.createMessage(messageData)
+        const message = await chatRoomService.saveMessage(messageData)
         return message
     } catch (error) {
         console.error('Controller - Error saving message:', error)
@@ -34,11 +32,10 @@ const saveMessage = async (messageData) => {
     }
 }
 
-//Lấy danh sách tin nhắn của phòng
-
+// Lấy danh sách tin nhắn của phòng (dùng chung cho chatroom và DM)
 const getRoomMessages = async (roomId, limit = 50) => {
     try {
-        const messages = await chatRoomService.getMessagesByRoomId(roomId, limit)
+        const messages = await chatRoomService.getRoomMessages(roomId, limit)
         return messages
     } catch (error) {
         console.error('Controller - Error getting room messages:', error)
@@ -46,11 +43,10 @@ const getRoomMessages = async (roomId, limit = 50) => {
     }
 }
 
-//Lấy danh sách người dùng trong phòng
-
+// Lấy danh sách người dùng trong phòng (chỉ dùng cho chatroom)
 const getRoomUsers = async (roomId) => {
     try {
-        const users = await chatRoomService.getUsersByRoomId(roomId)
+        const users = await chatRoomService.getRoomUsers(roomId)
         return users
     } catch (error) {
         console.error('Controller - Error getting room users:', error)
@@ -63,5 +59,5 @@ export const chatRoomController = {
     leaveRoom,
     saveMessage,
     getRoomMessages,
-    getRoomUsers
+    getRoomUsers,
 }

@@ -27,7 +27,7 @@ const createNew = async (req, res, next) => {
   })
   try {
     await correctCondition.validateAsync(req.body, {
-      abortEarly: false, 
+      abortEarly: false,
       allowUnknown: true
 
     })
@@ -146,7 +146,7 @@ const deleteAccount = async (req, res, next) => {
 const getAll = async (req, res, next) => {
   const correctCondition = Joi.object({
     page: Joi.number().integer().min(1).default(1),
-    limit: Joi.number().integer().min(5).max(50).default(10),
+    limit: Joi.number().integer().min(5).max(1000).default(10),
     search: Joi.string().trim().allow(''),
     sort: Joi.string().valid('displayname', 'createAt', 'updatedAt').default('createAt'),
     order: Joi.string().valid('asc', 'desc').default('desc')
