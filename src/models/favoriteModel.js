@@ -137,35 +137,45 @@ const findByUserIdAndPagination = async ({ userId, page, limit }) => {
   try {
     const skip = (page - 1) * limit
 
-    // Bước 1: Lấy danh sách heritageId từ bảng favorite (với phân trang)
-    const favoriteDoc = await GET_DB().collection(FAVORITE_COLLECTION_NAME).findOne(
+    const db = GET_DB()
+
+    // Bước 1: Lấy tài liệu favorite theo userId
+    const favoriteDoc = await db.collection(FAVORITE_COLLECTION_NAME).findOne(
       { userId: userId },
-      { projection: { items: { $slice: [skip, limit] } } }
+      { projection: { items: 1 } } // Lấy full items
     )
 
-    if (!favoriteDoc || !favoriteDoc.items || favoriteDoc.items.length === 0) {
-      return { items: [], pagination: { page, limit, totalCount: 0, totalPages: 0 } }
+    if (!favoriteDoc || !Array.isArray(favoriteDoc.items) || favoriteDoc.items.length === 0) {
+      return {
+        items: [],
+        pagination: { page, limit, totalItems: 0, totalPages: 0 }
+      }
     }
 
-    const heritageIds = favoriteDoc.items
-      .filter(item => ObjectId.isValid(item.heritageId)) // Kiểm tra ID hợp lệ
-      .map(item => new ObjectId(item.heritageId)) // Lấy mỗi heritageId và chuyển thành ObjectId
-
-    // Bước 2: Lấy chi tiết các heritage tương ứng với danh sách id
-    const heritages = await GET_DB().collection('HistoryHeritage')
-      .find({ _id: { $in: heritageIds }, _destroy: { $ne: true } })
-      .project({ _id: 1, name: 1, description: 1, images: 1 })  // Chỉ lấy các trường cần thiết
-      .toArray()
-
-
-    // Bước 3: Lấy tổng số lượng bản ghi yêu thích (totalCount)
-    const totalItems = heritages?.length
-
-    // Bước 4: Tính tổng số trang
+    const totalItems = favoriteDoc.items.length
     const totalPages = Math.ceil(totalItems / limit)
 
+    // Bước 2: Cắt danh sách theo phân trang
+    const paginatedItems = favoriteDoc.items.slice(skip, skip + limit)
 
-    // Trả về kết quả
+    // Bước 3: Lọc và chuyển heritageId thành ObjectId
+    const heritageIds = paginatedItems
+      .filter(item => ObjectId.isValid(item.heritageId))
+      .map(item => new ObjectId(item.heritageId))
+
+    if (heritageIds.length === 0) {
+      return {
+        items: [],
+        pagination: { page, limit, totalItems, totalPages }
+      }
+    }
+
+    // Bước 4: Lấy chi tiết heritage từ bảng HistoryHeritage
+    const heritages = await db.collection('HistoryHeritage')
+      .find({ _id: { $in: heritageIds }, _destroy: { $ne: true } })
+      .project({ _id: 1, name: 1, description: 1, images: 1, nameSlug: 1 })
+      .toArray()
+
     return {
       items: heritages,
       pagination: {
@@ -176,7 +186,7 @@ const findByUserIdAndPagination = async ({ userId, page, limit }) => {
       }
     }
   } catch (error) {
-    throw new Error(error)
+    throw new Error(error.message || 'Internal Server Error')
   }
 }
 
