@@ -2,6 +2,7 @@ import Joi from 'joi'
 import { StatusCodes } from 'http-status-codes'
 import ApiError from '~/utils/ApiError'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
+import { log } from 'node:console'
 
 const createTest = async (req, res, next) => {
     const condition = Joi.object({
@@ -102,21 +103,41 @@ const deleteTest = async (req, res, next) => {
 }
 
 const submitAttempt = async (req, res, next) => {
-    const condition = Joi.object({
-        userId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
-        userName: Joi.string().trim(),
-        answers: Joi.array().items(
-            Joi.object({
-                questionId: Joi.string().required(),
-                selectedOptions: Joi.array().items(Joi.string()).required()
-            })
-        ).min(1).required()
-    })
-
     try {
-        await condition.validateAsync(req.body, { abortEarly: false })
+        console.log('Request body:', JSON.stringify(req.body))
+
+        // Định nghĩa schema cho cấu trúc đáp án với nhiều định dạng
+        const answerItem = Joi.object({
+            questionId: Joi.string().required(),
+            selectedOptions: Joi.alternatives().try(
+                Joi.array().items(Joi.string()),
+                Joi.string()
+            ).required()
+        })
+
+        // Định nghĩa schema linh hoạt cho các kiểu dữ liệu đầu vào
+        const condition = Joi.alternatives().try(
+            // Cấu trúc chuẩn
+            Joi.object({
+                userId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).optional(),
+                userName: Joi.string().trim().optional(),
+                answers: Joi.array().items(answerItem).min(1).required()
+            }),
+            // Cấu trúc nồng (nested answers)
+            Joi.object({
+                userId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).optional(),
+                userName: Joi.string().trim().optional(),
+                answers: Joi.object({
+                    answers: Joi.array().items(answerItem).min(1).required()
+                }).required()
+            })
+        )
+
+        const validationResult = await condition.validateAsync(req.body, { abortEarly: false })
+        console.log('Validation passed:', JSON.stringify(validationResult))
         next()
     } catch (error) {
+        console.error('Validation error:', error)
         next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message))
     }
 }

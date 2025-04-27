@@ -66,6 +66,7 @@ const getTestsByHeritage = async (req, res, next) => {
 const submitAttempt = async (req, res, next) => {
     try {
         const testId = req.params.id
+        console.log("testId", req.body)
         const result = await knowledgeTestService.submitAttempt(testId, req.body)
         res.status(StatusCodes.OK).json(result)
     } catch (error) {

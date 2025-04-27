@@ -2,6 +2,7 @@ import { knowledgeTestModel } from '~/models/knowledgeTestModel'
 import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { v4 as uuidv4 } from 'uuid'
+import { log } from 'node:console'
 
 // Tạo bài test mới
 const createNew = async (data) => {
@@ -113,6 +114,7 @@ const getTestsByHeritage = async (heritageId) => {
 const submitAttempt = async (testId, data) => {
     try {
         const { userId, userName, answers } = data
+        console.log(userId, userName, answers)
 
         const test = await knowledgeTestModel.findOneById(testId)
         if (!test) {
@@ -122,17 +124,20 @@ const submitAttempt = async (testId, data) => {
         // Tính điểm
         let score = 0
         let totalQuestions = test.questions.length
-
-        answers.forEach(answer => {
-            const question = test.questions.find(q => q.id === answer.questionId)
+        const result = answers.answers
+        // console.log(result)
+        result.forEach(answer => {
+            const question = test.questions.find(q => q.questionId === answer.questionId || q.id === answer.questionId)
             if (!question) return
 
             const correctOptionIds = question.options
                 .filter(option => option.isCorrect)
-                .map(option => option.id)
+                .map(option => option.optionId || option.id)
 
-            const isCorrect = JSON.stringify(answer.selectedOptions.sort()) ===
-                JSON.stringify(correctOptionIds.sort())
+            const userSelectedOptions = answer.selectedOptions.sort()
+            const correctOptions = correctOptionIds.sort()
+
+            const isCorrect = JSON.stringify(userSelectedOptions) === JSON.stringify(correctOptions)
 
             if (isCorrect) score++
         })
