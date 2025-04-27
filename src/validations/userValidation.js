@@ -84,39 +84,8 @@ const updateUser = async (req, res, next) => {
       GENDER_OPTION.WOMAN,
       GENDER_OPTION.OTHER
     ),
-    dateOfBirth: Joi.date(),
-    avatar: Joi.string(),
-
-    heritageIds: Joi.array().items(
-      Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
-    ),
-
-    notifications: Joi.object({
-      unreadCount: Joi.number(),
-      recentNotifications: Joi.array().items(
-        Joi.object({
-          id: Joi.string()
-            .pattern(OBJECT_ID_RULE)
-            .message(OBJECT_ID_RULE_MESSAGE),
-          message: Joi.string(),
-          date: Joi.date(),
-          isRead: Joi.boolean()
-        })
-      )
-    }),
-
-    leaderboardStats: Joi.object({
-      bestRank: Joi.number(),
-      bestScore: Joi.number(),
-      totalParticipations: Joi.number()
-    }),
-
-    stats: Joi.object({
-      totalVisitedHeritages: Joi.number(),
-      totalCompletedTests: Joi.number(),
-      averageScore: Joi.number(),
-      totalReviews: Joi.number()
-    })
+    dateOfBirth: Joi.date().allow(null).optional(),
+    avatar: Joi.string()
   })
 
   try {
@@ -165,8 +134,9 @@ const refreshToken = async (req, res, next) => {
   const correctCondition = Joi.object({
     refreshToken: Joi.string().required().pattern(JWT_TOKEN_RULE).message(JWT_TOKEN_RULE_MESSAGE)
   })
+  const refreshToken = req.cookies['refreshToken']
   try {
-    await correctCondition.validateAsync(req?.cookies?.refreshToken, { abortEarly: false })
+    await correctCondition.validateAsync({ refreshToken }, { abortEarly: false })
     next()
   } catch (error) {
     next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))

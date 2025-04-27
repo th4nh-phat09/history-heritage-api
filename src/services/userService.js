@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { StatusCodes } from 'http-status-codes'
 import { userModel } from '~/models/userModel'
 import ApiError from '~/utils/ApiError'
@@ -110,9 +111,9 @@ const signIn = async (reqBody, res) => {
       role: userWithoutPassword.role
     }
     //tạo access token gửi về cho client
-    const accessToken = await JwtProvider.generateToken(userInfo, env.ACCESS_TOKEN_SECRET_SIGNATURE, '5s')
+    const accessToken = JwtProvider.generateToken(userInfo, env.ACCESS_TOKEN_SECRET_SIGNATURE, '1h')
     //tạo refresh token gửi về cho client
-    const refreshToken = await JwtProvider.generateToken(userInfo, env.REFRESH_TOKEN_SECRET_SIGNATURE, '14 days')
+    const refreshToken = JwtProvider.generateToken(userInfo, env.REFRESH_TOKEN_SECRET_SIGNATURE, '14 days')
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -125,7 +126,7 @@ const signIn = async (reqBody, res) => {
     //trả về kqua cho client
     return {
       userInfo: userWithoutPassword,
-      accessToken,
+      accessToken
     }
   } catch (error) {
     throw error
@@ -141,6 +142,7 @@ const getUserById = async (id) => {
     throw error
   }
 }
+
 
 const updateUser = async (id, data) => {
   try {
@@ -181,7 +183,7 @@ const refreshToken = async (refreshToken) => {
       role: verifyToken.role
     }
     //tạo access token gửi về cho client
-    const accessToken = await JwtProvider.generateToken(userInfo, env.ACCESS_TOKEN_SECRET_SIGNATURE, 5)
+    const accessToken = JwtProvider.generateToken(userInfo, env.ACCESS_TOKEN_SECRET_SIGNATURE, 5)
     return accessToken
   } catch (error) {
     throw error

@@ -10,6 +10,8 @@ import { Server } from 'socket.io'
 import { createServer } from 'http'
 import { registerSockets } from '~/sockets/index.js'
 import cors from 'cors'
+import path from 'path'
+import fs from 'fs'
 
 
 const START_SERVER = () => {
@@ -21,10 +23,18 @@ const START_SERVER = () => {
   //global._io = io
   registerSockets(io)
   console.log('registerSockets')
+  // Tạo thư mục uploads nếu chưa tồn tại
+  const uploadsDir = path.join(process.cwd(), 'Uploads');
+
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir);
+  }
   app.use(cookieParser())
   app.use(cors(corsOptions))
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
+  const __dirname = path.resolve();
+  app.use('/Uploads', express.static(path.join(__dirname, 'Uploads')));
   app.use('/v1', APIs_V1)
   app.use(errorHandlingMiddleware)
   server.listen(env.LOCAL_APP_PORT, () => {

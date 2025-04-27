@@ -41,7 +41,7 @@ const logout = async (req, res) => {
 
 const refreshToken = async (req, res) => {
   try {
-    const newAccessToken = await userService.refreshToken(req.body?.refreshToken)
+    const newAccessToken = await userService.refreshToken(req.cookies['refreshToken'])
     //set lại cookie cho client
     res.cookie(
       'accessToken',
@@ -71,9 +71,18 @@ const getUserById = async (req, res, next) => {
   }
 }
 
+const getUserProfile = async (req, res, next) => {
+  try {
+    const result = await userService.getUserById(req.userId)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
 const updateUser = async (req, res, next) => {
   try {
-    const result = await userService.updateUser(req.params.id, req.body)
+    const result = await userService.updateUser(req.userId, req.body)
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
     next(error)
@@ -94,6 +103,7 @@ export const userController = {
   getAll,
   createNew,
   getUserById,
+  getUserProfile,
   updateUser,
   deleteAccount,
   signIn,
