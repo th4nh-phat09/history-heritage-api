@@ -18,8 +18,8 @@ Router.route('/:id')
 //    .get(knowledgeTestController.getTestsByHeritage)
 
 // Test attempt
-//Router.route('/:id/attempt')
-//    .post(knowledgeTestValidation.submitAttempt, knowledgeTestController.submitAttempt)
+Router.route('/:id/attempt')
+  .post(knowledgeTestController.submitAttempt)
 
 //Router.route('/:id/leaderboard')
 //    .get(knowledgeTestController.getLeaderboard)
