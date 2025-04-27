@@ -74,7 +74,7 @@ const createHeritage = async (data) => {
     const getNewHeritage = await heritageModel.findOneById(createdHeritage.insertedId)
     await chatRoomModel.createNew({
       name: 'Phòng chat ' + getNewHeritage.name,
-      heritageId: getNewHeritage._id.toString(),
+      heritageId: getNewHeritage._id.toString()
     })
     return getNewHeritage
   } catch (error) {
@@ -133,11 +133,63 @@ const getHeritageBySlug = async (nameSlug) => {
   }
 }
 
+// Hàm tính khoảng cách Haversine từ một điểm đến một di tích (đơn vị: km)
+const haversineDistance = (lat1, lon1, lat2, lon2) => {
+  const toRad = (value) => (value * Math.PI) / 180
+  const R = 6371 // Bán kính Trái Đất (km)
+  const dLat = toRad(lat2 - lat1)
+  const dLon = toRad(lon2 - lon1)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
+
+const getNearestHeritages = async (latitude, longitude, limit = 5) => {
+  try {
+    // Validate tọa độ đầu vào
+    if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid latitude or longitude provided.')
+    }
+
+    // Lấy tất cả di tích với trạng thái ACTIVE
+    const { results } = await heritageModel.findListHeritages({
+      filter: { status: 'ACTIVE' },
+      sort: {},
+      skip: 0,
+      limit: 0 // Lấy tất cả để tính khoảng cách
+    })
+
+    // Tính khoảng cách từ điểm đầu vào đến từng di tích
+    const heritagesWithDistance = results.map(heritage => {
+      const heritageLat = parseFloat(heritage.coordinates.latitude)
+      const heritageLon = parseFloat(heritage.coordinates.longitude)
+      const distance = haversineDistance(latitude, longitude, heritageLat, heritageLon)
+      return { ...heritage, distance }
+    })
+
+    // Sắp xếp theo khoảng cách và lấy 5 di tích gần nhất
+    const nearestHeritages = heritagesWithDistance
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, limit)
+
+    return {
+      heritages: nearestHeritages,
+      totalItems: nearestHeritages.length
+    }
+  } catch (error) {
+    throw error.statusCode ? error : new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Error fetching nearest heritage sites.')
+  }
+}
+
 export const heritageService = {
   getHeritages,
   createHeritage,
   updateHeritage,
   deleteHeritage,
   getHeritageDetail,
-  getHeritageBySlug
+  getHeritageBySlug,
+  getNearestHeritages
 }

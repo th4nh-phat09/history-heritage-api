@@ -21,7 +21,6 @@ const createHeritage = async (req, res, next) => {
 
 const updateHeritage = async (req, res, next) => {
   try {
-    console.log(123);
     const result = await heritageService.updateHeritage(req.params.id, req.body)
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
@@ -56,6 +55,16 @@ const getHeritageBySlug = async (req, res, next) => {
   }
 }
 
+const getNearestHeritages = async (req, res, next) => {
+  try {
+    const { latitude, longitude, limit } = req.query
+    const result = await heritageService.getNearestHeritages(latitude, longitude, limit)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
 
 export const heritageController = {
   getHeritages,
@@ -63,5 +72,6 @@ export const heritageController = {
   updateHeritage,
   deleteHeritage,
   getHeritageDetail,
-  getHeritageBySlug
+  getHeritageBySlug,
+  getNearestHeritages
 }

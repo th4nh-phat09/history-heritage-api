@@ -4,6 +4,9 @@ import { heritageController } from '~/controllers/heritageController'
 
 const Router = express.Router()
 
+Router.route('/explore')
+  .get(heritageController.getNearestHeritages)
+
 // Lấy danh sách di tích
 Router.route('/')
   .get(heritageValidation.getHeritages, heritageController.getHeritages)
@@ -11,6 +14,7 @@ Router.route('/')
 
 Router.route('/:nameSlug')
   .get(heritageValidation.getHeritageBySlug, heritageController.getHeritageBySlug)
+
 
 // Lấy chi tiết, cập nhật và xóa di tích
 Router.route('/:id')
