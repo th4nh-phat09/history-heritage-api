@@ -1,0 +1,1 @@
+export const BE_URL = 'localhost:8017'
