@@ -137,6 +137,8 @@ const getUserById = async (id) => {
   try {
     const result = await userModel.findOneById(id)
     if (!result) throw new ApiError(StatusCodes.NOT_FOUND, 'User not found!.')
+    delete result.account.password
+    delete result.account.verifyToken
     return result
   } catch (error) {
     throw error
@@ -154,6 +156,7 @@ const updateUser = async (id, data) => {
       updatedAt: Date.now()
     }
     const updatedHeritage = await userModel.updateUser(id, newUser)
+    delete updatedHeritage.account
     return updatedHeritage
   } catch (error) {
     throw error
