@@ -194,6 +194,37 @@ const refreshToken = async (refreshToken) => {
 
 }
 
+const updateUserByUserId = async (userId, updateData) => {
+  try {
+
+    const existingUser = await userModel.findOneById(userId)
+    if (!existingUser) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found!')
+    }
+
+    // Nếu có cập nhật trạng thái tài khoản
+    if (updateData.account?.isActive !== undefined) {
+      updateData = {
+        ...updateData,
+        account: {
+          ...existingUser.account,  // Giữ nguyên các thông tin account hiện tại
+          isActive: updateData.account.isActive  // Chỉ cập nhật isActive
+        }
+      }
+    }
+    
+    const updatedUser = await userModel.updateUser(userId, {
+      ...updateData,
+      updatedAt: Date.now()
+    })
+
+    return updatedUser
+  } catch (error) {
+    throw error
+  }
+}
+
+// Export thêm function mới
 export const userService = {
   getAll,
   createNew,
@@ -201,5 +232,6 @@ export const userService = {
   updateUser,
   deleteAccount,
   signIn,
-  refreshToken
+  refreshToken,
+  updateUserByUserId
 }
