@@ -89,6 +89,15 @@ const updateUser = async (req, res, next) => {
   }
 }
 
+const updateUserByUserId = async (req, res, next) => {
+  try {
+    const result = await userService.updateUserByUserId(req.params.id, req.body)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
 const deleteAccount = async (req, res, next) => {
   try {
     const result = await userService.deleteAccount(req.params.id)
@@ -105,6 +114,7 @@ export const userController = {
   getUserById,
   getUserProfile,
   updateUser,
+  updateUserByUserId,
   deleteAccount,
   signIn,
   refreshToken,

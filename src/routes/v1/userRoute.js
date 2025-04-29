@@ -38,6 +38,7 @@ Router.route('/')
 
 // get detail, update, and delete user
 Router.route('/:id')
+  .put(userValidation.updateUserByUserId, userController.updateUserByUserId)
   .get(userValidation.getUserById, userController.getUserById)
   .delete(authMiddlewares.authentication, authMiddlewares.authorization, userValidation.deleteAccount, userController.deleteAccount)
 

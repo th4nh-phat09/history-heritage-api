@@ -99,6 +99,48 @@ const updateUser = async (req, res, next) => {
   }
 }
 
+const updateUserByUserId = async (req, res, next) => {
+  // Validate both params and body
+  const validationSchema = Joi.object({
+    // Params validation
+    params: Joi.object({
+      id: Joi.string()
+        .required()
+        .pattern(OBJECT_ID_RULE)
+        .message(OBJECT_ID_RULE_MESSAGE)
+    }),
+
+    // Body validation
+    body: Joi.object({
+      displayname: Joi.string().trim().strict(),
+      phone: Joi.string().pattern(PHONE_RULE).message(PHONE_RULE_MESSAGE),
+      gender: Joi.string().valid(
+        GENDER_OPTION.MEN,
+        GENDER_OPTION.WOMAN,
+        GENDER_OPTION.OTHER
+      ),
+      dateOfBirth: Joi.date().allow(null).optional(),
+      avatar: Joi.string(),
+      role: Joi.string().valid('admin', 'user'),
+      'account.isActive': Joi.boolean() // Add account status validation
+    })
+  })
+
+  try {
+    // Validate both params and body together
+    await validationSchema.validateAsync({
+      params: req.params,
+      body: req.body
+    }, {
+      abortEarly: false,
+      allowUnknown: true
+    })
+    next()
+  } catch (error) {
+    next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, error.message))
+  }
+}
+
 const deleteAccount = async (req, res, next) => {
   const correctCondition = Joi.object({
     id: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
@@ -147,6 +189,7 @@ export const userValidation = {
   createNew,
   getUserById,
   updateUser,
+  updateUserByUserId,
   deleteAccount,
   getAll,
   signIn,
