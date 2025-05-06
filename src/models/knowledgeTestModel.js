@@ -2,6 +2,7 @@ import Joi from 'joi'
 import { ObjectId } from 'mongodb'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 import { GET_DB } from '~/config/mongodb'
+import { log } from 'node:console'
 
 const KNOWLEDGE_TEST_COLLECTION_NAME = 'knowledgeTest'
 const INVALID_UPDATE_FIELDS = ['_id', 'createdAt']
@@ -160,6 +161,13 @@ const updateTestStats = async (id, userId, userName, newScore) => {
     try {
         const test = await findOneById(id)
         if (!test) throw new Error('Test not found')
+        if (Object.keys(test.stats).length === 0) {
+            test.stats = {
+                totalAttempts: 0,
+                averageScore: 0,
+                highestScore: 0
+            }
+        }
 
         // Calculate new stats
         const newStats = {
@@ -177,12 +185,21 @@ const updateTestStats = async (id, userId, userName, newScore) => {
             date: new Date()
         }
 
-        // Thêm performer mới và sắp xếp
-        topPerformers.push(newPerformer)
-        topPerformers.sort((a, b) => b.score - a.score)
+        // Tìm performer cũ nếu đã có
+        const existingIndex = topPerformers.findIndex(p => p.userId.toString() === userId.toString())
 
-        // Giới hạn số lượng top performers
-        topPerformers = topPerformers.slice(0, test.topPerformersLimit)
+        // Nếu chưa có hoặc điểm mới cao hơn điểm cũ
+        if (existingIndex === -1 || newScore > topPerformers[existingIndex].score) {
+            if (existingIndex !== -1)
+                topPerformers.splice(existingIndex, 1)
+
+            // Thêm bản mới
+            topPerformers.push(newPerformer)
+
+            // Sắp xếp và giới hạn
+            topPerformers.sort((a, b) => b.score - a.score)
+            topPerformers = topPerformers.slice(0, test.topPerformersLimit)
+        }
 
         const result = await getCollection().findOneAndUpdate(
             { _id: new ObjectId(id) },
@@ -190,7 +207,7 @@ const updateTestStats = async (id, userId, userName, newScore) => {
                 $set: {
                     stats: newStats,
                     topPerformers: topPerformers,
-                    updatedAt: new Date()
+                    updatedAt: Date.now()
                 }
             },
             { returnDocument: 'after' }

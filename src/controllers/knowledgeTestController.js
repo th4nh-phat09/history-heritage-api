@@ -1,4 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
+import { log } from 'node:console'
 import { knowledgeTestService } from '~/services/knowledgeTestService'
 import { ApiError } from '~/utils/ApiError'
 
@@ -66,7 +67,7 @@ const getTestsByHeritage = async (req, res, next) => {
 const submitAttempt = async (req, res, next) => {
     try {
         const testId = req.params.id
-        console.log("testId", req.body)
+        // console.log("testId", req.body.answers)
         const result = await knowledgeTestService.submitAttempt(testId, req.body)
         res.status(StatusCodes.OK).json(result)
     } catch (error) {
