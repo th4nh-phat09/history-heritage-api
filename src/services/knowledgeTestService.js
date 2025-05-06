@@ -114,35 +114,29 @@ const getTestsByHeritage = async (heritageId) => {
 const submitAttempt = async (testId, data) => {
     try {
         const { userId, userName, answers } = data
-        console.log(userId, userName, answers)
+        // console.log(userId, userName, answers)
 
         const test = await knowledgeTestModel.findOneById(testId)
-        if (!test) {
+        if (!test)
             throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy bài kiểm tra')
-        }
 
         // Tính điểm
         let score = 0
         let totalQuestions = test.questions.length
-        const result = answers.answers
+        const result = answers
         // console.log(result)
         result.forEach(answer => {
-            const question = test.questions.find(q => q.questionId === answer.questionId || q.id === answer.questionId)
+            const question = test.questions.find(q => q.questionId.toString() === answer.questionId)
             if (!question) return
-
             const correctOptionIds = question.options
                 .filter(option => option.isCorrect)
-                .map(option => option.optionId || option.id)
 
-            const userSelectedOptions = answer.selectedOptions.sort()
-            const correctOptions = correctOptionIds.sort()
-
-            const isCorrect = JSON.stringify(userSelectedOptions) === JSON.stringify(correctOptions)
+            const isCorrect = (correctOptionIds[0].optionId === answer.selectedOptionIds[0])
 
             if (isCorrect) score++
         })
 
-        const finalScore = totalQuestions > 0 ? (score / totalQuestions) * 10 : 0
+        const finalScore = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0
 
         await knowledgeTestModel.updateTestStats(testId, userId, userName, finalScore)
 

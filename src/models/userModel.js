@@ -85,7 +85,7 @@ const USER_COLLECTION_SCHEMA = Joi.object({
 })
 
 // chỉ định những trường ko nên update
-const INVALID_DATA_UPDATE = ['_id', 'createAt']
+const INVALID_DATA_UPDATE = ['_id', 'createAt', 'stats']
 
 // hàm validate của Joi
 const validationBeforeCreate = async (data) => {
