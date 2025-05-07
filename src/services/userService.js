@@ -208,8 +208,8 @@ const updateUserByUserId = async (userId, updateData) => {
       updateData = {
         ...updateData,
         account: {
-          ...existingUser.account,  // Giữ nguyên các thông tin account hiện tại
-          isActive: updateData.account.isActive  // Chỉ cập nhật isActive
+          ...existingUser.account, // Giữ nguyên các thông tin account hiện tại
+          isActive: updateData.account.isActive // Chỉ cập nhật isActive
         }
       }
     }
@@ -224,6 +224,7 @@ const updateUserByUserId = async (userId, updateData) => {
     throw error
   }
 }
+
 
 const forgotPassword = async (email) => {
   try {
@@ -249,10 +250,20 @@ const forgotPassword = async (email) => {
       success: true,
       message: 'A reset email has been sent to your email'
     }
+      } catch (error) {
+    throw error
+  }
+}
+
+const getUsersByCreationDate = async (dateString) => {
+  try {
+    const count = await userModel.countUsersBySpecificDate(dateString)
+    return { date: dateString, totalUsers: count }
   } catch (error) {
     throw error
   }
 }
+
 
 const resetPassword = async (email, code, newPassword) => {
   try {
@@ -290,7 +301,6 @@ const resetPassword = async (email, code, newPassword) => {
   }
 }
 
-
 // Export thêm function mới
 export const userService = {
   getAll,
@@ -302,5 +312,6 @@ export const userService = {
   refreshToken,
   updateUserByUserId,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  getUsersByCreationDate
 }
