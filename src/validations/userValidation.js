@@ -194,7 +194,7 @@ const forgotPassword = async (req, res, next) => {
   })
 
   try {
-    await schema.validateAsync(req.body, { abortEarly: false })
+    await schema.validateAsync(req.body, { abortEarly: false, allowUnknown: true })
     next()
   } catch (error) {
     next(new ApiError(StatusCodes.BAD_REQUEST, error.message))

@@ -232,7 +232,7 @@ const forgotPassword = async (email) => {
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Email not found!!')
     }
-    if (user?.isVerified === false) {
+    if (user?.account?.isVerified === false) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Email not verified')
     }
 
@@ -240,8 +240,8 @@ const forgotPassword = async (email) => {
     const codeExpiry = Date.now() + ms('1h')
 
     await userModel.updateUser(user._id, {
-      resetPasswordToken: resetCode,
-      resetPasswordExpires: codeExpiry
+      'account.resetPasswordToken': resetCode,
+      'account.resetPasswordExpires': codeExpiry
     })
 
     await mailService.sendResetPasswordEmail(email, resetCode)
@@ -265,6 +265,17 @@ const getUsersByCreationDate = async (dateString) => {
 }
 
 
+
+const getUsersByCreationDate = async (dateString) => {
+  try {
+    const count = await userModel.countUsersBySpecificDate(dateString)
+    return { date: dateString, totalUsers: count }
+  } catch (error) {
+    throw error
+  }
+}
+
+
 const resetPassword = async (email, code, newPassword) => {
   try {
     const user = await userModel.findOneByEmail(email)
@@ -272,24 +283,24 @@ const resetPassword = async (email, code, newPassword) => {
       throw new ApiError(StatusCodes.NOT_FOUND, 'User not found')
     }
 
-    if (!user.resetPasswordToken || user.resetPasswordToken !== code) {
+    if (!user.account?.resetPasswordToken || user.account.resetPasswordToken !== code) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid reset code')
     }
 
-    const isCodeExpired = new Date() > user.resetPasswordExpires
+    const isCodeExpired = new Date() > user.account.resetPasswordExpires
     if (isCodeExpired) {
       await userModel.updateUser(user._id, {
-        resetPasswordToken: null,
-        resetPasswordExpires: null
+        'account.resetPasswordToken': null,
+        'account.resetPasswordExpires': null
       })
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Reset code has expired')
     }
 
     const hashedPassword = bcryptjs.hashSync(newPassword, 8)
     await userModel.updateUser(user._id, {
-      password: hashedPassword,
-      resetPasswordToken: null,
-      resetPasswordExpires: null
+      'account.password': hashedPassword,
+      'account.resetPasswordToken': null,
+      'account.resetPasswordExpires': null
     })
 
     return {

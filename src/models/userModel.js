@@ -44,7 +44,10 @@ const USER_COLLECTION_SCHEMA = Joi.object({
     verifyToken: Joi.string(),
     code: Joi.string(),
     codeExpiry: Joi.date().default(null),
-    isVerified: Joi.boolean().default(false)
+    isVerified: Joi.boolean().default(false),
+    codeVerify: Joi.string(),
+    resetPasswordToken: Joi.string().allow(null).default(null),
+    resetPasswordExpires: Joi.date().allow(null).default(null),
   }),
 
   heritageIds: Joi.array()
