@@ -10,7 +10,7 @@ const __dirname = path.resolve()
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, 'Uploads/avatar'))
+    cb(null, path.join(__dirname, 'Uploads/Heritages'))
   },
 
   filename: (req, file, cb) => {
@@ -44,7 +44,7 @@ Router.post('/', (req, res) => {
 
     if (req.file) {
       // Construct the image path and full URL
-      const imagePath = `/Uploads/avatar/${req.file.filename}`
+      const imagePath = `/Uploads/Heritages/${req.file.filename}`
       const imageUrl = `http://${env.LOCAL_APP_HOST}:${env.LOCAL_APP_PORT}${imagePath}` // e.g., http://localhost:8017/Uploads/avatar/image-123456.jpg
 
       return res.status(200).send({
@@ -57,6 +57,7 @@ Router.post('/', (req, res) => {
     }
   })
 })
+
 
 Router.delete('/', (req, res) => {
   const { image } = req.body
@@ -82,4 +83,4 @@ Router.delete('/', (req, res) => {
   })
 })
 
-export const uploadRoute = Router
+export const heritageUploadRoute = Router

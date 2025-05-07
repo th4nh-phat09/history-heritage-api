@@ -193,6 +193,32 @@ const deleteOneById = async (id) => {
   }
 }
 
+const countUsersBySpecificDate = async (dateString) => {
+  try {
+    // Chuyển đổi chuỗi ngày tháng năm thành đối tượng Date
+    const [day, month, year] = dateString.split('-').map(Number)
+    if (!day || !month || !year || month < 1 || month > 12 || day < 1 || day > new Date(year, month, 0).getDate()) {
+      throw new Error('Invalid date format. Please use DD-MM-YYYY.')
+    }
+
+    const startDate = new Date(year, month - 1, day) // Month trong Date object bắt đầu từ 0
+    const endDate = new Date(year, month - 1, day, 23, 59, 59, 999)
+
+    const query = {
+      createAt: {
+        $gte: startDate,
+        $lte: endDate
+      }
+    }
+
+    return await GET_DB()
+      .collection(USER_COLLECTION_NAME)
+      .countDocuments(query)
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const userModel = {
   USER_COLLECTION_NAME,
   USER_COLLECTION_SCHEMA,
@@ -202,5 +228,6 @@ export const userModel = {
   findOneById,
   findOneByEmail,
   updateUser,
-  deleteOneById
+  deleteOneById,
+  countUsersBySpecificDate
 }

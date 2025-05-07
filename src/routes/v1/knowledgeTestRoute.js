@@ -14,7 +14,7 @@ Router.route('/:id')
   .put(knowledgeTestValidation.updateTest, knowledgeTestController.updateTest)
   .delete(knowledgeTestValidation.deleteTest, knowledgeTestController.deleteTest)
 
-//Router.route('/heritage/:heritageId')   
+//Router.route('/heritage/:heritageId')
 //    .get(knowledgeTestController.getTestsByHeritage)
 
 // Test attempt
