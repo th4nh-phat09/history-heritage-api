@@ -67,25 +67,30 @@ const USER_COLLECTION_SCHEMA = Joi.object({
       .default([])
   }).default({}),
 
-  leaderboardStats: Joi.object({
-    bestRank: Joi.number().default(null),
-    bestScore: Joi.number().default(0),
-    totalParticipations: Joi.number().default(0)
-  }).default({}),
+  // leaderboardStats: Joi.object({
+  //   bestRank: Joi.number().default(null),
+  //   bestScore: Joi.number().default(0),
+  //   totalParticipations: Joi.number().default(0)
+  // }).default({}),
 
   stats: Joi.object({
-    totalVisitedHeritages: Joi.number().default(null),
+    totalVisitedHeritages: Joi.number().default(0),
     totalCompletedTests: Joi.number().default(0),
     averageScore: Joi.number().default(0),
     totalReviews: Joi.number().default(0)
-  }).default({}),
+  }).default({
+    totalVisitedHeritages: 0,
+    totalCompletedTests: 0,
+    averageScore: 0,
+    totalReviews: 0
+  }),
 
   createAt: Joi.date().timestamp('javascript').default(Date.now),
   updatedAt: Joi.date().timestamp('javascript').default(null)
 })
 
 // chỉ định những trường ko nên update
-const INVALID_DATA_UPDATE = ['_id', 'createAt', 'stats']
+const INVALID_DATA_UPDATE = ['_id', 'createAt']
 
 // hàm validate của Joi
 const validationBeforeCreate = async (data) => {

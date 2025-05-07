@@ -161,6 +161,7 @@ const updateTestStats = async (id, userId, userName, newScore) => {
     try {
         const test = await findOneById(id)
         if (!test) throw new Error('Test not found')
+
         if (Object.keys(test.stats).length === 0) {
             test.stats = {
                 totalAttempts: 0,
@@ -187,6 +188,7 @@ const updateTestStats = async (id, userId, userName, newScore) => {
 
         // Tìm performer cũ nếu đã có
         const existingIndex = topPerformers.findIndex(p => p.userId.toString() === userId.toString())
+        // console.log(222222)
 
         // Nếu chưa có hoặc điểm mới cao hơn điểm cũ
         if (existingIndex === -1 || newScore > topPerformers[existingIndex].score) {
@@ -213,7 +215,11 @@ const updateTestStats = async (id, userId, userName, newScore) => {
             { returnDocument: 'after' }
         )
         return result
-    } catch (error) { throw new Error(error) }
+    } catch (error) {
+        // console.log(error);
+
+        throw new Error(error)
+    }
 }
 
 const findList = async ({ filter, skip, limit }) => {

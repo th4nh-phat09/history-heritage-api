@@ -5,6 +5,8 @@ import ApiError from '~/utils/ApiError'
 
 const getAll = async (queryParams) => {
   try {
+    console.log(11111111111);
+
     const { page, limit, search, sort, order } = queryParams
 
     // Tính toán skip
@@ -204,7 +206,7 @@ const getByHeritageId = async (heritageId, queryParams) => {
 // Helper function để tính toán stats
 const calculateStats = (rankings) => {
   const totalParticipants = rankings.length
-  const highestScore = rankings.length > 0 
+  const highestScore = rankings.length > 0
     ? Math.max(...rankings.map(r => r.score))
     : 0
   const averageScore = rankings.length > 0
