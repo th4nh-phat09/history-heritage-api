@@ -145,6 +145,17 @@ const getDetailById = async (id) => {
   } catch (error) { throw new Error(error) }
 }
 
+const getAllHerritageName = async () => {
+  try {
+    const result = await getCollection().find(
+      { _destroy: { $ne: true } },
+      { projection: { _id: 1, name: 1 } }
+    ).toArray()
+    return result
+  } catch (error) { throw new Error(error) }
+}
+
+
 // --- Export Model ---
 export const heritageModel = {
   HERITAGE_COLLECTION_NAME,
@@ -155,5 +166,6 @@ export const heritageModel = {
   updateOneById,
   deleteOneById,
   getDetailById,
-  findOneBySlug
+  findOneBySlug,
+  getAllHerritageName
 }

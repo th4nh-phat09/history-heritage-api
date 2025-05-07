@@ -207,18 +207,27 @@ const updateUserByUserId = async (userId, updateData) => {
       updateData = {
         ...updateData,
         account: {
-          ...existingUser.account,  // Giữ nguyên các thông tin account hiện tại
-          isActive: updateData.account.isActive  // Chỉ cập nhật isActive
+          ...existingUser.account, // Giữ nguyên các thông tin account hiện tại
+          isActive: updateData.account.isActive // Chỉ cập nhật isActive
         }
       }
     }
-    
+
     const updatedUser = await userModel.updateUser(userId, {
       ...updateData,
       updatedAt: Date.now()
     })
 
     return updatedUser
+  } catch (error) {
+    throw error
+  }
+}
+
+const getUsersByCreationDate = async (dateString) => {
+  try {
+    const count = await userModel.countUsersBySpecificDate(dateString)
+    return { date: dateString, totalUsers: count }
   } catch (error) {
     throw error
   }
@@ -233,5 +242,6 @@ export const userService = {
   deleteAccount,
   signIn,
   refreshToken,
-  updateUserByUserId
+  updateUserByUserId,
+  getUsersByCreationDate
 }
