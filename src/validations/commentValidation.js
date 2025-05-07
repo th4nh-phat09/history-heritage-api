@@ -1,17 +1,10 @@
 import { StatusCodes } from 'http-status-codes'
 import Joi from 'joi'
+import { log } from 'node:console'
 import ApiError from '~/utils/ApiError'
 import {
-  EMAIL_RULE,
-  EMAIL_RULE_MESSAGE,
-  JWT_TOKEN_RULE,
-  JWT_TOKEN_RULE_MESSAGE,
   OBJECT_ID_RULE,
-  OBJECT_ID_RULE_MESSAGE,
-  PASSWORD_RULE,
-  PASSWORD_RULE_MESSAGE,
-  PHONE_RULE,
-  PHONE_RULE_MESSAGE
+  OBJECT_ID_RULE_MESSAGE
 } from '~/utils/validators'
 
 const COMMENT_STATUS = {
@@ -21,6 +14,7 @@ const COMMENT_STATUS = {
 }
 
 const getAll = async (req, res, next) => {
+
   const correctCondition = Joi.object({
     page: Joi.number().integer().min(1).default(1),
     limit: Joi.number().integer().min(1).max(100).default(10),
@@ -40,6 +34,7 @@ const getAll = async (req, res, next) => {
 }
 
 const createNew = async (req, res, next) => {
+
   const correctCondition = Joi.object({
     heritageId: Joi.string()
       .required()
@@ -47,8 +42,7 @@ const createNew = async (req, res, next) => {
       .message(OBJECT_ID_RULE_MESSAGE),
     content: Joi.string()
       .required()
-      .trim()
-      .strict(),
+      .trim(),
     images: Joi.array().items(Joi.string()).default([]).optional(),
     rating: Joi.number().min(1).max(5).allow(null).optional()
   })
