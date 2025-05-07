@@ -40,7 +40,7 @@ const authentication = (async (req, res, next) => {
 
 const authorization = (async (req, res, next) => {
   try {
-    if (req?.role === 'admin') {
+    if (req?.userRole === 'admin') {
       return next()
     } else {
       throw new ApiError(StatusCodes.FORBIDDEN, 'Access denied')
