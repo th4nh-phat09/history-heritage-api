@@ -6,6 +6,7 @@ import { leaderBoardRoute } from './leaderBoardRoute'
 import { knowledgeTestRoute } from './knowledgeTestRoute'
 import { mailRoute } from './mailRoute'
 import { favoriteRoute } from './favoriteRoute'
+import { commentRoute } from './commentRoute'
 
 const Router = express.Router()
 
@@ -32,5 +33,7 @@ Router.use('/mail', mailRoute)
 // favorite APIs
 Router.use('/favorites', favoriteRoute)
 
+// comment APIs
+Router.use('/comments', commentRoute)
 
 export const APIs_V1 = Router
