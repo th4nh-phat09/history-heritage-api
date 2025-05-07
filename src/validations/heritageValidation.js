@@ -238,4 +238,4 @@ export const heritageValidation = {
   updateHeritage,
   deleteHeritage,
   getHeritageBySlug
-} 
+}

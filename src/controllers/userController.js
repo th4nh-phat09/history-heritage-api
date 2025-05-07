@@ -107,6 +107,16 @@ const deleteAccount = async (req, res, next) => {
   }
 }
 
+const getUsersByCreationDate = async (req, res, next) => {
+  try {
+    const { date } = req.params // Lấy ngày từ parameters (ví dụ: /users/report/date/07-05-2025)
+    const report = await userService.getUsersByCreationDate(date)
+    res.status(StatusCodes.OK).json(report)
+  } catch (error) {
+    next(error)
+  }
+}
+
 
 export const userController = {
   getAll,
@@ -118,5 +128,6 @@ export const userController = {
   deleteAccount,
   signIn,
   refreshToken,
-  logout
+  logout,
+  getUsersByCreationDate
 }

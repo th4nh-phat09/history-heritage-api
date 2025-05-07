@@ -66,6 +66,16 @@ const getNearestHeritages = async (req, res, next) => {
 }
 
 
+const getAllHeritageNames = async (req, res, next) => {
+  try {
+    const result = await heritageService.getAllHeritageNames(req.params.nameSlug)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
+
 export const heritageController = {
   getHeritages,
   createHeritage,
@@ -73,5 +83,6 @@ export const heritageController = {
   deleteHeritage,
   getHeritageDetail,
   getHeritageBySlug,
-  getNearestHeritages
+  getNearestHeritages,
+  getAllHeritageNames
 }
