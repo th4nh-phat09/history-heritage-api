@@ -1,5 +1,4 @@
 import { StatusCodes } from 'http-status-codes'
-import { log } from 'node:console'
 import { knowledgeTestService } from '~/services/knowledgeTestService'
 import { ApiError } from '~/utils/ApiError'
 

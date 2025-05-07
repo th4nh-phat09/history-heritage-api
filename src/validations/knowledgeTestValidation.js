@@ -171,12 +171,14 @@ const getTests = async (req, res, next) => {
 }
 
 const getTestById = async (req, res, next) => {
+    console.log(11111111);
     const correctCondition = Joi.object({
         id: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
     })
 
     try {
         await correctCondition.validateAsync(req.params, { abortEarly: false })
+
         next()
     } catch (error) {
         next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
