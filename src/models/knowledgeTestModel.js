@@ -157,16 +157,18 @@ const deleteOneById = async (id) => {
 
 // Update stats and top performers
 const updateTestStats = async (id, userId, userName, newScore) => {
-  try {
-    const test = await findOneById(id)
-    if (!test) throw new Error('Test not found')
-    if (Object.keys(test.stats).length === 0) {
-      test.stats = {
-        totalAttempts: 0,
-        averageScore: 0,
-        highestScore: 0
-      }
-    }
+
+    try {
+        const test = await findOneById(id)
+        if (!test) throw new Error('Test not found')
+
+        if (Object.keys(test.stats).length === 0) {
+            test.stats = {
+                totalAttempts: 0,
+                averageScore: 0,
+                highestScore: 0
+            }
+        }
 
     // Calculate new stats
     const newStats = {
@@ -213,6 +215,7 @@ const updateTestStats = async (id, userId, userName, newScore) => {
     )
     return result
   } catch (error) { throw new Error(error) }
+
 }
 
 const findList = async ({ filter, skip, limit }) => {

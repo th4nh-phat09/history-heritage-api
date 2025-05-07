@@ -3,6 +3,9 @@ import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { v4 as uuidv4 } from 'uuid'
 import { log } from 'node:console'
+import { leaderBoardModel } from '~/models/leaderBoardModel'
+import { userModel } from '~/models/userModel'
+import { heritageModel } from '~/models/heritageModel'
 
 // Tạo bài test mới
 const createNew = async (data) => {
@@ -18,7 +21,13 @@ const createNew = async (data) => {
             optionId: option.id || uuidv4()
           })) || []
         }
-      })
+
+        const createdTest = await knowledgeTestModel.createNew(data)
+        const getNewTest = await knowledgeTestModel.findOneById(createdTest.insertedId)
+        await leaderBoardModel.createNew({ heritageId: getNewTest.heritageId })
+        return getNewTest
+    } catch (error) {
+        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Error when creating new knowledge test')
     }
 
     const createdTest = await knowledgeTestModel.createNew(data)
@@ -112,38 +121,117 @@ const getTestsByHeritage = async (heritageId) => {
 
 // Nộp bài làm
 const submitAttempt = async (testId, data) => {
-  try {
-    const { userId, userName, answers } = data
-    // console.log(userId, userName, answers)
+    try {
+        const { userId, userName, answers } = data
 
-    const test = await knowledgeTestModel.findOneById(testId)
-    if (!test)
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy bài kiểm tra')
+        const test = await knowledgeTestModel.findOneById(testId)
+        if (!test)
+            throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy bài kiểm tra')
 
-    // Tính điểm
-    let score = 0
-    let totalQuestions = test.questions.length
-    const result = answers
-    // console.log(result)
-    result.forEach(answer => {
-      const question = test.questions.find(q => q.questionId.toString() === answer.questionId)
-      if (!question) return
-      const correctOptionIds = question.options
-        .filter(option => option.isCorrect)
+        // Tính điểm
+        let score = 0
+        let totalQuestions = test.questions.length
+        const result = answers
+        // console.log(result)
+        result.forEach(answer => {
+            const question = test.questions.find(q => q.questionId.toString() === answer.questionId)
+            if (!question) return
+            const correctOptionIds = question.options
+                .filter(option => option.isCorrect)
 
-      const isCorrect = (correctOptionIds[0].optionId === answer.selectedOptionIds[0])
+            const isCorrect = (correctOptionIds[0].optionId === answer.selectedOptionIds[0])
 
-      if (isCorrect) score++
-    })
+            if (isCorrect) score++
+        })
 
-    const finalScore = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0
+        const finalScore = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0
 
-    await knowledgeTestModel.updateTestStats(testId, userId, userName, finalScore)
+        await knowledgeTestModel.updateTestStats(testId, userId, userName, finalScore)
 
-    return {
-      score: finalScore,
-      totalQuestions,
-      correctAnswers: score
+        const user = await userModel.findOneById(userId)
+
+        if (!user)
+            throw new ApiError(StatusCodes.NOT_FOUND, new Error('User is not Found').message)
+
+        // Cập nhật thống kê:
+        user.stats.totalCompletedTests += 1
+
+        const totalTests = user.stats.totalCompletedTests
+        const prevAverage = user.stats.averageScore
+
+        // Tính lại điểm trung bình mới:
+        user.stats.averageScore = ((prevAverage * (totalTests - 1)) + finalScore) / totalTests
+
+        await userModel.updateUser(userId, { stats: user.stats })
+
+        const leaderBoard = await leaderBoardModel.findOneByHeritageId(test.heritageId)
+        if (!leaderBoard)
+            throw new ApiError(StatusCodes.NOT_FOUND, 'LeaderBoard is not found')
+        const newUser = {
+            userId,
+            score: finalScore,
+            avatar: user.avatar,
+            displayName: user.displayname,
+            completeDate: new Date()
+        }
+
+        // Tìm user trong bảng xếp hạng
+        const existingIndex = leaderBoard.rankings.length > 0
+            ? leaderBoard.rankings.findIndex(r => r.userId.toString() === userId.toString())
+            : -1
+
+        if (existingIndex !== -1) {
+            // Nếu đã có và điểm mới cao hơn thì cập nhật
+            const oldScore = leaderBoard.rankings[existingIndex].score
+            if (finalScore > oldScore)
+                leaderBoard.rankings[existingIndex] = newUser
+            else return
+        } else leaderBoard.rankings.push(newUser)
+
+        // Sắp xếp lại thứ hạng theo điểm giảm dần
+        leaderBoard.rankings.sort((a, b) => b.score - a.score)
+
+        // Gán lại thứ hạng sau khi sort
+        leaderBoard.rankings.forEach((entry, index) => { entry.rank = index + 1 })
+
+        // Cập nhật thống kê
+        leaderBoard.stats.totalParticipants = leaderBoard.rankings.length
+        leaderBoard.stats.highestScore = leaderBoard.rankings[0]?.score || 0
+        leaderBoard.stats.averageScore =
+            leaderBoard.rankings.reduce((sum, entry) => sum + entry.score, 0) /
+            leaderBoard.rankings.length
+
+        await leaderBoardModel.update(leaderBoard._id, {
+            rankings: leaderBoard.rankings,
+            stats: leaderBoard.stats,
+            updatedAt: new Date()
+        })
+
+        const topUsers = leaderBoard.rankings.slice(0, 10).map(user => ({
+            userId: user.userId,
+            userName: user.displayName
+        }))
+        const topScore = leaderBoard.rankings[0].score
+        const totalParticipants = leaderBoard.rankings.length
+
+        await heritageModel.updateOneById(test.heritageId, {
+            leaderboardSummary: {
+                topUsers,
+                topScore: String(topScore),
+                totalParticipants: String(totalParticipants)
+            },
+            updatedAt: Date.now()
+        })
+
+        return {
+            score: finalScore,
+            totalQuestions,
+            correctAnswers: score
+        }
+    } catch (error) {
+        console.log(error);
+
+        throw error
     }
   } catch (error) {
     throw error
@@ -151,13 +239,13 @@ const submitAttempt = async (testId, data) => {
 }
 
 // Lấy bảng xếp hạng
-const getLeaderboard = async (testId) => {
-  try {
-    const test = await knowledgeTestModel.findOneById(testId)
-    if (!test) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy bài kiểm tra')
-    }
-
+const getleaderboard = async (testId) => {
+    try {
+        const test = await knowledgeTestModel.findOneById(testId)
+        if (!test) {
+            throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy bài kiểm tra')
+        }
+      
     return {
       testId: test._id,
       testTitle: test.title,
@@ -255,38 +343,46 @@ const getQuestionById = async (testId, questionId) => {
 }
 
 const updateQuestion = async (testId, questionId, updateData) => {
-  try {
 
-    const test = await knowledgeTestModel.findOneById(testId)
+    try {
 
-    if (!test)
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy bài kiểm tra')
-    const questionIndex = test.questions?.findIndex(q => q.questionId === questionId)
+        const test = await knowledgeTestModel.findOneById(testId)
 
-    if (questionIndex === -1 || questionIndex === undefined)
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy câu hỏi')
+        if (!test)
+            throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy bài kiểm tra')
+        const questionIndex = test.questions?.findIndex(q => q.questionId === questionId)
 
-    let updatedQuestion = { ...test.questions[questionIndex] }
+        if (questionIndex === -1 || questionIndex === undefined)
+            throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy câu hỏi')
 
-    Object.keys(updateData).forEach(key => {
-      if (key === 'options') {
-        updatedQuestion.options = updateData.options.map(option => {
-          if (!option.id) {
-            return {
-              ...option,
-              optionId: uuidv4()
+        let updatedQuestion = { ...test.questions[questionIndex] }
+
+        Object.keys(updateData).forEach(key => {
+            if (key === 'options') {
+                updatedQuestion.options = updateData.options.map(option => {
+                    if (!option.id) {
+                        return {
+                            ...option,
+                            optionId: uuidv4()
+                        }
+                    }
+                    return option
+                })
+            } else {
+                updatedQuestion[key] = updateData[key]
             }
           }
           return option
         })
-      } else {
-        updatedQuestion[key] = updateData[key]
-      }
-    })
-    test.questions[questionIndex] = updatedQuestion
-    const updateDataForTest = {
-      questions: test.questions,
-      updatedAt: Date.now()
+        test.questions[questionIndex] = updatedQuestion
+        const updateDataForTest = {
+            questions: test.questions,
+            updatedAt: Date.now()
+        }
+        await knowledgeTestModel.updateOneById(testId, updateDataForTest)
+        return updatedQuestion
+    } catch (error) {
+        throw error
     }
     await knowledgeTestModel.updateOneById(testId, updateDataForTest)
     return updatedQuestion
@@ -442,22 +538,22 @@ const deleteOption = async (testId, questionId, optionId) => {
 
 
 export const knowledgeTestService = {
-  createNew,
-  getTests,
-  getTestById,
-  updateTest,
-  deleteTest,
-  getTestsByHeritage,
-  submitAttempt,
-  getLeaderboard,
-  updateBasicInfo,
-  getQuestions,
-  addQuestion,
-  getQuestionById,
-  updateQuestion,
-  deleteQuestion,
-  getOptions,
-  addOption,
-  updateOption,
-  deleteOption
+    createNew,
+    getTests,
+    getTestById,
+    updateTest,
+    deleteTest,
+    getTestsByHeritage,
+    submitAttempt,
+    getleaderboard,
+    updateBasicInfo,
+    getQuestions,
+    addQuestion,
+    getQuestionById,
+    updateQuestion,
+    deleteQuestion,
+    getOptions,
+    addOption,
+    updateOption,
+    deleteOption
 }

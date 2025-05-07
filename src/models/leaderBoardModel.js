@@ -1,5 +1,6 @@
 import Joi from 'joi'
 import { ObjectId } from 'mongodb'
+import { log } from 'node:console'
 import { GET_DB } from '~/config/mongodb'
 import {
   OBJECT_ID_RULE_MESSAGE,
@@ -16,8 +17,9 @@ const LEADER_BOARD_COLLECTION_SCHEMA = Joi.object({
     .items(
       Joi.object({
         userId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
-        rank: Joi.number().required(),
         score: Joi.number().required(),
+        rank: Joi.number(),
+        avatar: Joi.string().default(null),
         displayName: Joi.string().trim().strict(),
         completeDate: Joi.date()
       })
@@ -28,6 +30,10 @@ const LEADER_BOARD_COLLECTION_SCHEMA = Joi.object({
     totalParticipants: Joi.number().default(0),
     highestScore: Joi.number().default(0),
     averageScore: Joi.number().default(0)
+  }).default({
+    totalParticipants: 0,
+    highestScore: 0,
+    averageScore: 0
   }),
 
   createAt: Joi.date().timestamp('javascript').default(Date.now),
