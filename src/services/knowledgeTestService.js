@@ -2,7 +2,9 @@ import { knowledgeTestModel } from '~/models/knowledgeTestModel'
 import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { v4 as uuidv4 } from 'uuid'
-import { log } from 'node:console'
+import { leaderBoardModel } from '~/models/leaderBoardModel'
+import { userModel } from '~/models/userModel'
+import { heritageModel } from '~/models/heritageModel'
 
 // Tạo bài test mới
 const createNew = async (data) => {
@@ -23,11 +25,17 @@ const createNew = async (data) => {
 
         const createdTest = await knowledgeTestModel.createNew(data)
         const getNewTest = await knowledgeTestModel.findOneById(createdTest.insertedId)
+        await leaderBoardModel.createNew({ heritageId: getNewTest.heritageId })
+
         return getNewTest
     } catch (error) {
-        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Error when creating new knowledge test')
+        throw new ApiError(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            'Error when creating new knowledge test'
+        )
     }
 }
+
 
 const getTests = async (queryParams) => {
     try {
@@ -114,7 +122,6 @@ const getTestsByHeritage = async (heritageId) => {
 const submitAttempt = async (testId, data) => {
     try {
         const { userId, userName, answers } = data
-        // console.log(userId, userName, answers)
 
         const test = await knowledgeTestModel.findOneById(testId)
         if (!test)
@@ -140,18 +147,96 @@ const submitAttempt = async (testId, data) => {
 
         await knowledgeTestModel.updateTestStats(testId, userId, userName, finalScore)
 
+        const user = await userModel.findOneById(userId)
+
+        if (!user)
+            throw new ApiError(StatusCodes.NOT_FOUND, new Error('User is not Found').message)
+
+        // Cập nhật thống kê:
+        user.stats.totalCompletedTests += 1
+
+        const totalTests = user.stats.totalCompletedTests
+        const prevAverage = user.stats.averageScore
+
+        // Tính lại điểm trung bình mới:
+        user.stats.averageScore = ((prevAverage * (totalTests - 1)) + finalScore) / totalTests
+
+        await userModel.updateUser(userId, { stats: user.stats })
+
+        const leaderBoard = await leaderBoardModel.findOneByHeritageId(test.heritageId)
+        if (!leaderBoard)
+            throw new ApiError(StatusCodes.NOT_FOUND, 'LeaderBoard is not found')
+        const newUser = {
+            userId,
+            score: finalScore,
+            avatar: user.avatar,
+            displayName: user.displayname,
+            completeDate: new Date()
+        }
+
+        // Tìm user trong bảng xếp hạng
+        const existingIndex = leaderBoard.rankings.length > 0
+            ? leaderBoard.rankings.findIndex(r => r.userId.toString() === userId.toString())
+            : -1
+
+        if (existingIndex !== -1) {
+            // Nếu đã có và điểm mới cao hơn thì cập nhật
+            const oldScore = leaderBoard.rankings[existingIndex].score
+            if (finalScore > oldScore)
+                leaderBoard.rankings[existingIndex] = newUser
+            else return
+        } else leaderBoard.rankings.push(newUser)
+
+        // Sắp xếp lại thứ hạng theo điểm giảm dần
+        leaderBoard.rankings.sort((a, b) => b.score - a.score)
+
+        // Gán lại thứ hạng sau khi sort
+        leaderBoard.rankings.forEach((entry, index) => { entry.rank = index + 1 })
+
+        // Cập nhật thống kê
+        leaderBoard.stats.totalParticipants = leaderBoard.rankings.length
+        leaderBoard.stats.highestScore = leaderBoard.rankings[0]?.score || 0
+        leaderBoard.stats.averageScore =
+            leaderBoard.rankings.reduce((sum, entry) => sum + entry.score, 0) /
+            leaderBoard.rankings.length
+
+        await leaderBoardModel.update(leaderBoard._id, {
+            rankings: leaderBoard.rankings,
+            stats: leaderBoard.stats,
+            updatedAt: new Date()
+        })
+
+        const topUsers = leaderBoard.rankings.slice(0, 10).map(user => ({
+            userId: user.userId,
+            userName: user.displayName
+        }))
+        const topScore = leaderBoard.rankings[0].score
+        const totalParticipants = leaderBoard.rankings.length
+
+        await heritageModel.updateOneById(test.heritageId, {
+            leaderboardSummary: {
+                topUsers,
+                topScore: String(topScore),
+                totalParticipants: String(totalParticipants)
+            },
+            updatedAt: Date.now()
+        })
+
         return {
             score: finalScore,
             totalQuestions,
             correctAnswers: score
         }
     } catch (error) {
+        // console.log(error)
+
         throw error
     }
 }
 
+
 // Lấy bảng xếp hạng
-const getLeaderboard = async (testId) => {
+const getleaderboard = async (testId) => {
     try {
         const test = await knowledgeTestModel.findOneById(testId)
         if (!test) {
@@ -256,12 +341,12 @@ const getQuestionById = async (testId, questionId) => {
 
 const updateQuestion = async (testId, questionId, updateData) => {
     try {
-
-        const test = await knowledgeTestModel.findOneById(testId);
+        const test = await knowledgeTestModel.findOneById(testId)
 
         if (!test)
-            throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy bài kiểm tra');
-        const questionIndex = test.questions?.findIndex(q => q.questionId === questionId);
+            throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy bài kiểm tra')
+
+        const questionIndex = test.questions?.findIndex(q => q.questionId === questionId)
 
         if (questionIndex === -1 || questionIndex === undefined)
             throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy câu hỏi')
@@ -283,17 +368,24 @@ const updateQuestion = async (testId, questionId, updateData) => {
                 updatedQuestion[key] = updateData[key]
             }
         })
+
         test.questions[questionIndex] = updatedQuestion
+
         const updateDataForTest = {
             questions: test.questions,
             updatedAt: Date.now()
         }
-        await knowledgeTestModel.updateOneById(testId, updateDataForTest);
+
+        await knowledgeTestModel.updateOneById(testId, updateDataForTest)
+
         return updatedQuestion
     } catch (error) {
         throw error
     }
 }
+
+
+
 
 const deleteQuestion = async (testId, questionId) => {
     try {
@@ -441,7 +533,6 @@ const deleteOption = async (testId, questionId, optionId) => {
 }
 
 
-
 export const knowledgeTestService = {
     createNew,
     getTests,
@@ -450,7 +541,7 @@ export const knowledgeTestService = {
     deleteTest,
     getTestsByHeritage,
     submitAttempt,
-    getLeaderboard,
+    getleaderboard,
     updateBasicInfo,
     getQuestions,
     addQuestion,

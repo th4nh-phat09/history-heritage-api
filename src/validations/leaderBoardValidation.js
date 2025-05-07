@@ -91,7 +91,7 @@ const deleteLeaderBoard = async (req, res, next) => {
     await correctCondition.validateAsync(req.params, { abortEarly: false })
     next()
   } catch (error) {
-    next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))    
+    next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
   }
 }
 

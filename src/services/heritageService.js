@@ -184,6 +184,15 @@ const getNearestHeritages = async (latitude, longitude, limit = 5) => {
   }
 }
 
+const getAllHeritageNames = async () => {
+  try {
+    const heritageList = await heritageModel.getAllHerritageName()
+    return heritageList
+  } catch (error) {
+    throw error
+  }
+}
+
 export const heritageService = {
   getHeritages,
   createHeritage,
@@ -191,5 +200,6 @@ export const heritageService = {
   deleteHeritage,
   getHeritageDetail,
   getHeritageBySlug,
-  getNearestHeritages
+  getNearestHeritages,
+  getAllHeritageNames
 }
