@@ -18,6 +18,11 @@ Router.route('/auth/')
 Router.route('/auth/refresh-token')
   .post(userValidation.refreshToken, userController.refreshToken)
 
+Router.route('/auth/forgot-password')
+  .post(userValidation.forgotPassword, userController.forgotPassword)
+
+Router.route('/auth/reset-password')
+  .post(userValidation.resetPassword, userController.resetPassword)
 
 // Router.use(authMiddlewares.authentication)
 Router.use('/upload', uploadRoute)
