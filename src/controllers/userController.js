@@ -107,6 +107,15 @@ const deleteAccount = async (req, res, next) => {
   }
 }
 
+const forgotPassword = async (req, res, next) => {
+  try {
+    const result = await userService.forgotPassword(req.body.email)
+    res.status(StatusCodes.OK).json(result)
+      } catch (error) {
+    next(error)
+  }
+}
+
 const getUsersByCreationDate = async (req, res, next) => {
   try {
     const { date } = req.params // Lấy ngày từ parameters (ví dụ: /users/report/date/07-05-2025)
@@ -117,6 +126,15 @@ const getUsersByCreationDate = async (req, res, next) => {
   }
 }
 
+const resetPassword = async (req, res, next) => {
+  try {
+    const { email, code, newPassword } = req.body
+    const result = await userService.resetPassword(email, code, newPassword)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
 
 export const userController = {
   getAll,
@@ -129,5 +147,7 @@ export const userController = {
   signIn,
   refreshToken,
   logout,
+  forgotPassword,
+  resetPassword,
   getUsersByCreationDate
 }

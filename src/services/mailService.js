@@ -61,4 +61,35 @@ const verify_email = async (email, code) => {
   }
 }
 
-export const mailService = { sendVerificationEmail, verify_email }
+
+const sendResetPasswordEmail = async (email, resetCode) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASSWORD
+      }
+    })
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: 'Reset Your Password',
+      html: `
+        <h2>Password Reset Request</h2>
+        <p>You requested to reset your password.</p>
+        <p>Here is your reset code: <strong>${resetCode}</strong></p>
+        <p>This code will expire in 1 hour.</p>
+        <p>If you did not request this, please ignore this email.</p>
+      `
+    }
+
+    await transporter.sendMail(mailOptions)
+    return 'Reset password email sent successfully'
+  } catch (error) {
+    throw error
+  }
+}
+
+export const mailService = { sendVerificationEmail, verify_email, sendResetPasswordEmail }

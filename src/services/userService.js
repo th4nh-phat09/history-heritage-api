@@ -8,6 +8,7 @@ import { mailService } from './mailService'
 import { JwtProvider } from '~/providers/JwtProvider'
 import { env } from '~/config/environment'
 import ms from 'ms'
+import generateConfirmationCode from '~/utils/generateConfirmationCode'
 
 const getAll = async (queryParams) => {
   try {
@@ -54,7 +55,7 @@ const createNew = async (reqBody) => {
     // check email có tồn tại hay không
     const checkEmail = await userModel.findOneByEmail(reqBody.email)
     if (checkEmail) {
-      throw new ApiError(StatusCodes.CONFLICT, 'Email already exited!')
+      throw new ApiError(StatusCodes.CONFLICT, 'Email already existed!')
     }
     // khởi tạo data
     const nameFromEmail = reqBody.email.split('@')[0]
@@ -224,10 +225,77 @@ const updateUserByUserId = async (userId, updateData) => {
   }
 }
 
+
+const forgotPassword = async (email) => {
+  try {
+    const user = await userModel.findOneByEmail(email)
+    if (!user) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Email not found!!')
+    }
+    if (user?.isVerified === false) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Email not verified')
+    }
+
+    const resetCode = generateConfirmationCode()
+    const codeExpiry = Date.now() + ms('1h')
+
+    await userModel.updateUser(user._id, {
+      resetPasswordToken: resetCode,
+      resetPasswordExpires: codeExpiry
+    })
+
+    await mailService.sendResetPasswordEmail(email, resetCode)
+
+    return {
+      success: true,
+      message: 'A reset email has been sent to your email'
+    }
+      } catch (error) {
+    throw error
+  }
+}
+
 const getUsersByCreationDate = async (dateString) => {
   try {
     const count = await userModel.countUsersBySpecificDate(dateString)
     return { date: dateString, totalUsers: count }
+  } catch (error) {
+    throw error
+  }
+}
+
+
+const resetPassword = async (email, code, newPassword) => {
+  try {
+    const user = await userModel.findOneByEmail(email)
+    if (!user) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found')
+    }
+
+    if (!user.resetPasswordToken || user.resetPasswordToken !== code) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid reset code')
+    }
+
+    const isCodeExpired = new Date() > user.resetPasswordExpires
+    if (isCodeExpired) {
+      await userModel.updateUser(user._id, {
+        resetPasswordToken: null,
+        resetPasswordExpires: null
+      })
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Reset code has expired')
+    }
+
+    const hashedPassword = bcryptjs.hashSync(newPassword, 8)
+    await userModel.updateUser(user._id, {
+      password: hashedPassword,
+      resetPasswordToken: null,
+      resetPasswordExpires: null
+    })
+
+    return {
+      success: true,
+      message: 'Password reset successfully'
+    }
   } catch (error) {
     throw error
   }
@@ -243,5 +311,7 @@ export const userService = {
   signIn,
   refreshToken,
   updateUserByUserId,
+  forgotPassword,
+  resetPassword,
   getUsersByCreationDate
 }
