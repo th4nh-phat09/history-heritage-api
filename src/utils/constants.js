@@ -1,14 +1,17 @@
 import { env } from '~/config/environment'
 
 export const WHITELIST_DOMAINS = [
-    'http://localhost',
-    'http://localhost:80',
-    'http://localhost:443',
-    'http://localhost:4200', // nếu dev dùng Vite/React
-    'http://localhost:4173',
-    'https://heritage.thuandev.id.vn',
-    'https://heritage.thuandev.id.vn/'
-    // Sau này có domain nào muốn cho qua cors thì bỏ ở đây
+  'http://localhost',
+  'http://localhost:80',
+  'http://localhost:443',
+  'http://localhost:4200', // nếu dev dùng Vite/React
+  'http://localhost:4173',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://heritage_frontend',
+  'https://heritage_frontend',
+  'https://heritage.thuandev.id.vn',
+  'https://heritage.thuandev.id.vn/'
   ]
 export const WEBSITE_DOMAIN = (env.BUILD_MODE === 'production') ? env.WEBSITE_DOMAIN_PRODUCTION : env.WEBSITE_DOMAIN_DEVELOPMENT
 /**
