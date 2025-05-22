@@ -265,17 +265,6 @@ const getUsersByCreationDate = async (dateString) => {
 }
 
 
-
-const getUsersByCreationDate = async (dateString) => {
-  try {
-    const count = await userModel.countUsersBySpecificDate(dateString)
-    return { date: dateString, totalUsers: count }
-  } catch (error) {
-    throw error
-  }
-}
-
-
 const resetPassword = async (email, code, newPassword) => {
   try {
     const user = await userModel.findOneByEmail(email)

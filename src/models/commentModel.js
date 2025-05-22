@@ -23,7 +23,7 @@ const COMMENT_COLLECTION_SCHEMA = Joi.object({
       .pattern(OBJECT_ID_RULE)
       .message(OBJECT_ID_RULE_MESSAGE), // ID của người gửi bình luận
     displayName: Joi.string().required().trim().strict(), // Tên hiển thị của người gửi bình luận
-    avatar: Joi.string().default(null) // Ảnh đại diện của người gửi bình luận
+    avatar: Joi.string().allow(null).default(null) // Ảnh đại diện của người gửi bình luận
   }).required(),
   content: Joi.string().required().trim().strict(), // Nội dung bình luận
   likes: Joi.array()
