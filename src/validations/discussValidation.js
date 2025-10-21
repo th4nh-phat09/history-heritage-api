@@ -1,7 +1,8 @@
-import Joi from 'joi'
-import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
-import { StatusCodes } from 'http-status-codes'
-import ApiError from '~/utils/ApiError'
+import Joi from "joi";
+import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from "~/utils/validators";
+import { StatusCodes } from "http-status-codes";
+import ApiError from "~/utils/ApiError";
+import { sanitizeHtml } from "~/utils/sanitize";
 
 export const discussValidation = {
   createNew: async (req, res, next) => {
@@ -18,59 +19,72 @@ export const discussValidation = {
       parentId: Joi.string()
         .pattern(OBJECT_ID_RULE)
         .message(OBJECT_ID_RULE_MESSAGE)
-        .allow(null, '')
-    })
+        .allow(null, ""),
+    });
 
     try {
-      req.body.userId = req.userId
+      req.body.userId = req.userId;
       await correctCondition.validateAsync(req.body, {
         abortEarly: false,
-        allowUnknown: true
-      })
-      next()
+        allowUnknown: true,
+      });
+      // Lọc nội dung bình luận
+      const sanitizedContent = sanitizeHtml(req.body.content);
+      console.log("Sanitized Content:", sanitizedContent);
+
+      // Kiểm tra nếu sau khi lọc mà nội dung không còn gì (có thể là tấn công XSS thuần túy)
+      if (!sanitizedContent.trim())
+        next(
+          new ApiError(
+            StatusCodes.UNPROCESSABLE_ENTITY,
+            "Bình luận không thể rỗng hoặc chứa mã độc."
+          )
+        );
+      next();
     } catch (error) {
-      next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message))
+      next(
+        new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message)
+      );
     }
   },
 
   updateComment: async (req, res, next) => {
     const updateSchema = Joi.object({
-      content: Joi.string().trim().strict().required()
-    })
+      content: Joi.string().trim().strict().required(),
+    });
 
     try {
       await updateSchema.validateAsync(req.body, {
         abortEarly: false,
-        allowUnknown: false
-      })
-      next()
+        allowUnknown: false,
+      });
+      next();
     } catch (error) {
-      next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, error.message))
+      next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, error.message));
     }
   },
-
 
   getCommentById: async (req, res, next) => {
     const correctCondition = Joi.object({
       id: Joi.string()
         .required()
         .pattern(OBJECT_ID_RULE)
-        .message(OBJECT_ID_RULE_MESSAGE)
-    })
+        .message(OBJECT_ID_RULE_MESSAGE),
+    });
 
     try {
-      await correctCondition.validateAsync(req.params, { abortEarly: false })
-      next()
+      await correctCondition.validateAsync(req.params, { abortEarly: false });
+      next();
     } catch (error) {
-      next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
+      next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message));
     }
   },
 
   getCommentByParentId: async (req, res, next) => {
     const processedQuery = {
       ...req.query,
-      parentId: req.query.parentId === 'null' ? null : req.query.parentId
-    }
+      parentId: req.query.parentId === "null" ? null : req.query.parentId,
+    };
 
     const correctCondition = Joi.object({
       heritageId: Joi.string()
@@ -80,15 +94,17 @@ export const discussValidation = {
       parentId: Joi.string()
         .pattern(OBJECT_ID_RULE)
         .message(OBJECT_ID_RULE_MESSAGE)
-        .allow(null, '')
-    })
+        .allow(null, ""),
+    });
 
     try {
-      await correctCondition.validateAsync(processedQuery, { abortEarly: false })
-      req.query = processedQuery
-      next()
+      await correctCondition.validateAsync(processedQuery, {
+        abortEarly: false,
+      });
+      req.query = processedQuery;
+      next();
     } catch (error) {
-      next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
+      next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message));
     }
   },
 
@@ -97,14 +113,14 @@ export const discussValidation = {
       id: Joi.string()
         .required()
         .pattern(OBJECT_ID_RULE)
-        .message(OBJECT_ID_RULE_MESSAGE)
-    })
+        .message(OBJECT_ID_RULE_MESSAGE),
+    });
 
     try {
-      await correctCondition.validateAsync(req.params, { abortEarly: false })
-      next()
+      await correctCondition.validateAsync(req.params, { abortEarly: false });
+      next();
     } catch (error) {
-      next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
+      next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message));
     }
   },
 
@@ -117,15 +133,14 @@ export const discussValidation = {
       commentId: Joi.string()
         .required()
         .pattern(OBJECT_ID_RULE)
-        .message(OBJECT_ID_RULE_MESSAGE)
-    })
+        .message(OBJECT_ID_RULE_MESSAGE),
+    });
 
     try {
-      await correctCondition.validateAsync(req.query, { abortEarly: false })
-      next()
+      await correctCondition.validateAsync(req.query, { abortEarly: false });
+      next();
     } catch (error) {
-      next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message))
+      next(new ApiError(StatusCodes.BAD_REQUEST, new Error(error).message));
     }
-  }
-
-}
+  },
+};
