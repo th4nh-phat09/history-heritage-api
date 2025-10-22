@@ -56,7 +56,8 @@ Router.route('/')
     (req, res, next) => {
       if (req.files && req.files.length > 0) {
         // Add the image paths to the request body
-        req.body.images = req.files.map(file => `http://${env.LOCAL_APP_HOST}:${env.LOCAL_APP_PORT}/Uploads/comments/${file.filename}`)
+        // req.body.images = req.files.map(file => `http://${env.LOCAL_APP_HOST}:${env.LOCAL_APP_PORT}/Uploads/comments/${file.filename}`)
+        req.body.images = req.files.map(file => `https://heritage.thuandev.id.vn/Uploads/comments/${file.filename}`)
       } else {
         req.body.images = []
       }

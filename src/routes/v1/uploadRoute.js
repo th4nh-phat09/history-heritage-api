@@ -45,8 +45,9 @@ Router.post('/', (req, res) => {
     if (req.file) {
       // Construct the image path and full URL
       const imagePath = `/Uploads/avatar/${req.file.filename}`
-      const imageUrl = `http://${env.LOCAL_APP_HOST}:${env.LOCAL_APP_PORT}${imagePath}` // e.g., http://localhost:8017/Uploads/avatar/image-123456.jpg
-
+      // const imageUrl = `http://${env.LOCAL_APP_HOST}:${env.LOCAL_APP_PORT}${imagePath}` // e.g., http://localhost:8017/Uploads/avatar/image-123456.jpg
+      const imageUrl = `https://heritage.thuandev.id.vn${imagePath}` // e.g., https://heritage.thuandev.id.vn/Uploads/avatar/image-123456.jpg
+      
       return res.status(200).send({
         message: 'Image uploaded successfully',
         image: imagePath, // Relative path
