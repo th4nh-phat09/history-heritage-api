@@ -38,6 +38,7 @@ const getAll = async (req, res, next) => {
 };
 
 const createNew = async (req, res, next) => {
+  console.log("Starting validation for comment creation");
   const correctCondition = Joi.object({
     heritageId: Joi.string()
       .required()
