@@ -92,6 +92,7 @@ const signIn = async (reqBody, res) => {
   try {
     // check email có tồn tại hay không
     const user = await userModel.findOneByEmail(reqBody.email);
+    console.log("User found during sign-in:", user);
     if (!user) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Email not found!");
     }
@@ -135,7 +136,7 @@ const signIn = async (reqBody, res) => {
       httpOnly: true,
       secure: true,
       httpOnly: true,
-      sameSite: "lãx",
+      sameSite: "lax",
       maxAge: ms("14 days"),
     });
     delete userWithoutPassword.account;
